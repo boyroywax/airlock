@@ -1,0 +1,9 @@
+services:
+  airlock:
+    container_name: airlock-v0.0.1
+    image: js-airlock:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
