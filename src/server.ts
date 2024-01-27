@@ -77,7 +77,6 @@ app.use('/', router, orbitdbRouter);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
 
 
-
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
 });

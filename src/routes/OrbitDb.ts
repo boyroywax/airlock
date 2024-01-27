@@ -7,9 +7,13 @@
  */
 
 import express from 'express';
-import { OrbitDB } from '../orbitdb/index.js';
+import { OrbitDBNode } from '../orbitdb/index.js';
 
-const odb: OrbitDB = new OrbitDB();
+const odb: OrbitDBNode = new OrbitDBNode({
+    databaseName: 'ab1-orbitdb-ipfs-trnkt-xyz',
+    databaseType: 'documents',
+    enableDID: true
+});
 
 const orbitdbRouter = express.Router();
 
@@ -49,6 +53,10 @@ orbitdbRouter.get('/api/orbitdb/address', async function(req: any, res: any) {
  */
 orbitdbRouter.get('/api/orbitdb/all', async function(req: any, res: any) {
     res.send(await odb.openDb.all());
+})
+
+orbitdbRouter.get('/api/orbitdb/stop', async function(req: any, res: any) {
+    res.send(await odb.stopNode());
 })
     
 export { orbitdbRouter };
