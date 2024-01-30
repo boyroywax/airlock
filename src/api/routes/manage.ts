@@ -1,13 +1,15 @@
 'use strict';
 
 import express, { Request, Response } from 'express';
-import { OrbitDBNode, OrbitDBNodeOptions } from '../../models/orbitdb.js';
+import { OrbitDBNode, OrbitDBNodeOptions, OrbitDBTypes } from '../../models/orbitdb.js';
+
+
 
 
 
 const orbitDbOptions: OrbitDBNodeOptions = {
     databaseName: 'ab1-orbitdb-ipfs-trnkt-xyz',
-    databaseType: 'events',
+    databaseType: OrbitDBTypes.EventLog,
     enableDID: true
 }
 
