@@ -1,7 +1,20 @@
-# Airlock
+# js-airlock-server
 
-Auth on IPFS
+> Express.js server for Airlock
 
+
+## Overview
+
+Airlock is a decentralized authentication system built on top of IPFS and OrbitDB [1]. It is designed to be a drop-in replacement for traditional authentication systems such as OAuth2.0 and OpenID Connect. Airlock Server is designed to be used in conjunction with [Airlock Client]()
+
+### Features
+
+* Create new OrbitDb databases
+* Open existing OrbitDb databases
+* Add new entries to OrbitDb databases
+* Query OrbitDb databases
+* Delete entries from OrbitDb databases
+* Swagger Docs
 
 ## Quick Start
 

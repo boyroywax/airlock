@@ -1,7 +1,7 @@
 services:
   airlock:
-    container_name: airlock-v0.0.1
-    image: js-airlock:latest
+    container_name: js-airlock-server-v0.0.1
+    image: js-airlock-server:latest
     build:
       context: .
       dockerfile: Dockerfile

@@ -16,8 +16,21 @@ import { ipnsValidator } from 'ipns/validator'
 import { ipnsSelector } from 'ipns/selector'
 import { mdns } from '@libp2p/mdns'
 import { mplex } from '@libp2p/mplex'
+import { createLibp2p, Libp2p, Libp2pOptions } from 'libp2p'
 
-const bootstrapConfig = {
+class LibP2pNode {
+  public instance: Libp2p
+
+  public constructor() {
+    const initialize = async () => {
+      const { libp2pNode } = await this.create();
+      this.instance = libp2pNode;
+    };
+
+    initialize();
+  }
+    
+  public defaultBootstrapConfig: {list: string[]} = {
     list: [
       "/dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN",
       "/dnsaddr/bootstrap.libp2p.io/p2p/QmQCU2EcMqAqQPR2i9bChDtGNJchTbq5TbXJJ16u19uLTa",
@@ -27,7 +40,7 @@ const bootstrapConfig = {
     ]
   }
 
-export const libp2pConfig: any = {
+  public defaultLibp2pConfig: Libp2pOptions  = {
     addresses: {
         listen: [
         '/ip4/0.0.0.0/udp/0/',
@@ -55,33 +68,33 @@ export const libp2pConfig: any = {
         mplex()
     ],
     services: {    
-        pubsub: gossipsub({
-            allowPublishToZeroPeers: true
-        }),           
-        autonat: autoNAT(),     
-        identify: identify(),
-        upnpNAT: uPnPNAT(),
-        dht: kadDHT({
-            clientMode: false,
-            validators: {
-                ipns: ipnsValidator
-            },
-            selectors: {
-                ipns: ipnsSelector
-            }
-        }),
-        lanDHT: kadDHT({
-            protocol: '/ipfs/lan/kad/1.0.0',
-            peerInfoMapper: removePublicAddressesMapper,
-            clientMode: false
-        }),
-        relay: circuitRelayServer({
-            advertise: true
-        }),
-        dcutr: dcutr(),
+      pubsub: gossipsub({
+          allowPublishToZeroPeers: true
+      }),           
+      autonat: autoNAT(),     
+      identify: identify(),
+      upnpNAT: uPnPNAT(),
+      dht: kadDHT({
+          clientMode: false,
+          validators: {
+              ipns: ipnsValidator
+          },
+          selectors: {
+              ipns: ipnsSelector
+          }
+      }),
+      lanDHT: kadDHT({
+          protocol: '/ipfs/lan/kad/1.0.0',
+          peerInfoMapper: removePublicAddressesMapper,
+          clientMode: false
+      }),
+      relay: circuitRelayServer({
+          advertise: true
+      }),
+      dcutr: dcutr(),
     },
     peerDiscovery: [
-        bootstrap(bootstrapConfig),
+        bootstrap(this.defaultBootstrapConfig),
         mdns(),
     ],
     connectionGater: {
@@ -89,4 +102,12 @@ export const libp2pConfig: any = {
         return false
         }
     }
+  }
+
+  public async create(): Promise<{ libp2pNode: any }> {
+    const libp2pNode: Libp2p = await createLibp2p(this.defaultLibp2pConfig)
+    return libp2pNode
+  }
 }
+
+export { LibP2pNode }

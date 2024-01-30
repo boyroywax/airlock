@@ -1,14 +1,43 @@
-import { createLibp2p, Libp2p } from 'libp2p'
 import { MemoryBlockstore } from 'blockstore-core'
 import { MemoryDatastore } from 'datastore-core'
 import { Helia, createHelia } from 'helia'
-import { createOrbitDB, useIdentityProvider } from '@orbitdb/core'
-import OrbitDBIdentityProviderDID from '@orbitdb/identity-provider-did'
-import KeyDidResolver from 'key-did-resolver'
-import { Ed25519Provider } from 'key-did-provider-ed25519'
 
-import { libp2pConfig } from './libp2pConfig.js'
-import { OrbitDBNodeOptions, OrbitDBOptions, OrbitDBDIDOptions, OrbitDBTypes } from '../models/orbitdb.js'
+import { LibP2pNode } from './libp2pConfig';
+import { Libp2p } from 'libp2p/dist/src';
+
+class IPFSNode {
+  public constructor() {
+    const initialize = async () => {
+      const ipfs = await this.create();
+      this.instance = ipfs;
+    };
+
+    initialize();
+  }
+
+  public heliaInitConfig: any = {
+
+
+  private async create(): Promise<{ ipfs: Helia }> {
+    const datastore = new MemoryDatastore()
+    const blockstore = new MemoryBlockstore()
+
+    const libp2pNode: Libp2p = new LibP2pNode().instance as Libp2p
+
+    const ipfs: Helia = await createHelia({
+      blockstore,
+      datastore,
+      libp2p: libp2pNode.instance
+    })
+
+    return ipfs
+  }
+
+
+
+}
+
+
 
 
 export class OrbitDBNode {
@@ -96,10 +125,10 @@ export class OrbitDBNode {
   public async startNode(
     {
       databaseName = 'orbitdb',
-      databaseType = 'eventlog'
+      databaseType = OrbitDBTypes.EventLog
     }: OrbitDBOptions = {
       databaseName: 'orbitdb',
-      databaseType: 'eventlog'
+      databaseType: OrbitDBTypes.EventLog
     }
   ): Promise<{ db: any }> {
     const db = await this.orbitdbNode.open(databaseName, { type: databaseType })
@@ -120,20 +149,7 @@ export class OrbitDBNode {
     return { db }
   }
 
-  public async addData(data: any) {
-    await this.openDb.add(data)
-    return 'Data added'
-  }
 
-  public async putData(data: any) {
-    await this.openDb.put(data)
-    return 'Data added'
-  }
-
-  public async getData(hash: string) {
-    const data = await this.openDb.get(hash)
-    return data
-  }
 
   public async closeDb() {
     await this.openDb.close()

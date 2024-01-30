@@ -18,10 +18,9 @@ RUN npm run build
 
 COPY ./entrypoint.sh ./entrypoint.sh
 
-EXPOSE 3000 5001 5002
+EXPOSE 3000
 
-CMD ["node", "./build/server.js", "--trace-deprecation", "--trace-warnings"]
-# CMD ["server", "./build/server.js", "-l", "tcp://0.0.0.0:3000"]
+CMD ["node", "./dist/index.js", "--trace-deprecation", "--trace-warnings"]
 
 
 
