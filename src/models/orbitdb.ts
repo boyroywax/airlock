@@ -8,7 +8,7 @@ enum OrbitDBTypes {
 
 interface OrbitDBOptions {
   databaseType: OrbitDBTypes;
-  databaseName?: string;
+  databaseName: string;
 }
 
 interface OrbitDBDIDOptions {

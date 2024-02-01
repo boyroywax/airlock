@@ -1,21 +1,36 @@
 import { ApiServer } from './api/server.js';
 import { OrbitDBNode } from './db/index.js';
+import { OrbitDBNodeManager } from './db/index.js';
+import { OrbitDBNodeOptions } from './models/orbitdb.js';
 
+class AirlockServerOptions {
+    public port: number = 3000;
+}
 
+class AirlockServer {
+    public manager: OrbitDBNodeManager;
 
-class Airlock {
-    public static main() {
-        const orbitDbOptions = {
-            databaseName: 'ab1-orbitdb-ipfs-trnkt-xyz',
-            databaseType: 'events',
-            enableDID: true
+    public constructor(
+        orbtiDBNodeOptions: OrbitDBNodeOptions[]
+    ) {
+        this.manager = new OrbitDBNodeManager();
+
+        const initialize = async () => {
+            for (const options of orbtiDBNodeOptions) {
+                this.manager.createNode(options);
+            }
         }
-        const odb = new OrbitDBNode(orbitDbOptions);
+        initialize();
+    }
 
-        const apiServer = new ApiServer();
-        apiServer.start();
+    public start() {
+        const server = new ApiServer();
+        server.start();
     }
 }
 
-
-Airlock.main();
+export {
+    AirlockServer,
+    AirlockServerOptions,
+    OrbitDBNode
+}

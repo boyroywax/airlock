@@ -4,31 +4,42 @@ import KeyDidResolver from 'key-did-resolver'
 import { Ed25519Provider } from 'key-did-provider-ed25519'
 
 import { IPFSNode } from "./ipfs.js"
-import { OrbitDBManifest, OrbitDBNodeOptions } from '../models/orbitdb.js'
+import { OrbitDBManifest, OrbitDBNodeOptions, OrbitDBTypes } from '../models/orbitdb.js'
 
 
-class OrbitDBInstance {
-  public ipfs: IPFSNode
+class OrbitDBNode {
   public orbitdbOptions: OrbitDBNodeOptions
+  public ipfs: IPFSNode
   public instance: any = null
+  public openDb: any = null
+  public manifest: OrbitDBManifest | null = null
 
-  public constructor(ipfs: IPFSNode, orbitdbOptions: OrbitDBNodeOptions) {
-    this.ipfs = ipfs
+  public constructor(
+    orbitdbOptions: OrbitDBNodeOptions,
+    ipfs?: IPFSNode
+  ) {
+    if (ipfs === undefined) {
+      this.ipfs = new IPFSNode()
+    }
+    else {
+      this.ipfs = ipfs
+    }
     this.orbitdbOptions = orbitdbOptions
+
+    const initialize = async () => {
+      this.instance = await this.createNode()
+      this.openDb = await this.openOrbitDb()
+    }
+
+    initialize()
   }
 
   private configNode() {
-    let config = {}
-    if (this.orbitdbOptions.enableDID) {
-      config = { identity: { provider: this.enableDID()} }
+    const identity = this.orbitdbOptions.enableDID ? { provider: this.enableDID() } : null;
+    return {
+      directory: this.createRandomDirectory(),
+      ...(identity && { identity })
     }
-    config['directory'] = this.createRandomDirectory()
-    return config
-    
-
-  public async createNode() {
-    
-    this.instance = await createOrbitDB(this.ipfs.instance, { })
   }
 
   private enableDID() {
@@ -44,64 +55,45 @@ class OrbitDBInstance {
   private createRandomDirectory() {
     return Math.random().toString(36).substring(7)
   }
-
-  private async openDb() {
-
+   
+  private async createNode() {
+    const config = this.configNode()
+    this.instance = await createOrbitDB(this.ipfs.instance, config)
+    return this.instance
   }
 
-
-
-}
-
-
-
-
-class OrbitDBSetup {
-  public constructor(ipfs: IPFSNode) {
-    this.ipfs = ipfs
-  }
-  
-  public async createNode() {
-    this.orbitdb = createOrbitDB(this.ipfs.instance, { })
-  }
-
-  public async openDb(options: any) {
-    const orbitdb = await this.orbitdb.open(
-      options.databaseName,
-      options.databaseType, 
+  public async openOrbitDb() {
+    this.openDb = this.instance.open(
+      this.orbitdbOptions.databaseName, 
       {
-        ipfs: this.ipfs,
-        accessController: {
-          write: ['*']
-        }
+        type: this.orbitdbOptions.databaseType
       }
     )
-    return new OrbitDBActions(orbitdb)
-  }
-
-
-}
-
-class OrbitDBActions {
-  private openDb: any
-
-  public constructor(openDb: any) {
-    this.openDb = openDb
   }
 
   public async addData(data: any) {
-    await this.openDb.add(data)
-    return 'Data added'
+    return await this.openDb.add(data)
   }
 
   public async putData(data: any) {
-    await this.openDb.put(data)
+    return await this.openDb.put(data)
     return 'Data added'
   }
 
   public async getData(hash: string) {
-    const data = await this.openDb.get(hash)
-    return data
+    return await this.openDb.get(hash)
   }
 
+  public async getAllData() {
+    return await this.openDb.all()
+  }
+
+  public closeDb() {
+    this.openDb.close()
+    return 'Database closed'
+  }
+}
+
+export {
+  OrbitDBNode
 }
