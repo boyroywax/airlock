@@ -9,13 +9,13 @@ Airlock is a decentralized authentication system built on top of IPFS and OrbitD
 
 ### Features
 
-* Open multiple OrbitDb databases simultaneously
 * Create new OrbitDb databases
-* Open existing OrbitDb databases by address
+* Open multiple OrbitDb databases simultaneously
+* Supports currently available OrbitDb database types
 * Add new entries to OrbitDb databases
 * Get entries from OrbitDb databases by CID
 * Delete entries from OrbitDb databases by CID
-* Express API server with Swagger built in
+* Express API server with Swagger documentation
 * gRPC interface (coming soon)
 
 ## Quick Start
@@ -31,6 +31,32 @@ npm install
 ```bash
 npm run bs
 ```
+
+## API
+
+The API is documented using Swagger and can be accessed at [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
+
+### Database Management
+
+[] Create a new database
+[] Open an existing database
+[] List all open databases
+[] Close a database
+
+### Entry Management
+
+[] Add a new entry to a database
+[] Get an entry from a database
+[] Delete an entry from a database
+
+
+## gRPC
+
+gRPC is coming soon
+
+
+
+
 
 
 ## References

@@ -1,19 +1,9 @@
 'use strict';
 
-import express, { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { OrbitDBNode, OrbitDBNodeOptions } from '../../models/orbitdb.js';
 
-
-
-const orbitDbOptions: OrbitDBNodeOptions = {
-    databaseName: 'ab1-orbitdb-ipfs-trnkt-xyz',
-    databaseType: 'events',
-    enableDID: true
-}
-
-const odb: OrbitDBNode = new OrbitDBNode(orbitDbOptions);
-
-const orbitdbRouter = express.Router();
+import { router } from './index.js';
 
 /**
  * @openapi
@@ -30,7 +20,7 @@ const orbitdbRouter = express.Router();
  *     example: /or
  * 
  */
-orbitdbRouter.get('/api/orbitdb/all', async function(req: Request, res: Response) {
+router.get('/api/orbitdb/all', async function(req: Request, res: Response) {
     res.send(await odb.openDb.all());
 })
 

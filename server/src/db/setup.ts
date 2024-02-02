@@ -62,7 +62,7 @@ class OrbitDBNode {
     return this.instance
   }
 
-  public async openOrbitDb() {
+  private async openOrbitDb() {
     this.openDb = this.instance.open(
       this.orbitdbOptions.databaseName, 
       {
@@ -77,7 +77,6 @@ class OrbitDBNode {
 
   public async putData(data: any) {
     return await this.openDb.put(data)
-    return 'Data added'
   }
 
   public async getData(hash: string) {

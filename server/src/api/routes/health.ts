@@ -1,6 +1,6 @@
-import express from 'express';
+import { Request, Response } from 'express';
+import { router } from './index.js';
 
-const router = express.Router();
 
 /**
  * @openapi
@@ -17,7 +17,7 @@ const router = express.Router();
  *     example: /or
  * 
  */
-router.get('/api/hello', function(req: any, res: any) {
+router.get('/api/hello', function(req: Request, res: Response) {
     res.send('Hello World!');
 });
 

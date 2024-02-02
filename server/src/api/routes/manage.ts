@@ -1,10 +1,7 @@
 'use strict';
 
-import express, { Request, Response } from 'express';
+import express, { Request, Response, } from 'express';
 import { OrbitDBNode, OrbitDBNodeOptions, OrbitDBTypes } from '../../models/orbitdb.js';
-
-
-
 
 
 const orbitDbOptions: OrbitDBNodeOptions = {
