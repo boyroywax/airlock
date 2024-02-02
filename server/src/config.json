@@ -3,7 +3,6 @@
         {
             "name": "test-events",
             "type": "events"
-
         },
         {
             "name": "test-keyvalue",

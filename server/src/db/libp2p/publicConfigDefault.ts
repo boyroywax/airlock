@@ -16,6 +16,7 @@ import { ipnsValidator } from 'ipns/validator'
 import { ipnsSelector } from 'ipns/selector'
 import { mdns } from '@libp2p/mdns'
 import { mplex } from '@libp2p/mplex'
+import { Libp2pOptions } from 'libp2p'
 
 
 const defaultBootstrapConfig: any = {
@@ -28,7 +29,7 @@ const defaultBootstrapConfig: any = {
     ]
 }
 
-const defaultLibp2pConfig: any = {
+const defaultLibp2pConfig: Libp2pOptions = {
     addresses: {
         listen: [
             '/ip4/0.0.0.0/udp/0/',

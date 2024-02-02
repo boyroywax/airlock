@@ -46,7 +46,9 @@ The API is documented using Swagger and can be accessed at [http://localhost:300
 ### Database Entries
 
 #### [] Add a new entry to a database
+#### [] Update an entry in a database
 #### [] Get an entry from a database
+#### [] List all entries in a database
 #### [] Delete an entry from a database
 
 

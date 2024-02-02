@@ -1,25 +1,31 @@
 import { Libp2p, Libp2pOptions, createLibp2p  } from 'libp2p'
 import { defaultLibp2pConfig } from './publicConfigDefault.js'
-import { ILibp2pInstanceOptions } from '../../models/libp2pModels.js'
+import { INodeInstanceConfig, INodeInstance, INodeInstancesManager, INodeActionResponse } from '../../models/node.js'
+import { createRandomId } from '../../utils/index.js';
 
 
-class Libp2pInstance {
+class Libp2pNode implements INodeInstance {
+
     public id: string;
     public instance: Libp2p;
 
-    public constructor(
-        id: string | null = null,
-        libp2pConfig: ILibp2pInstanceOptions = defaultLibp2pConfig,
-        instance: Libp2p | null = null
-    ) {
+    public constructor({
+        id,
+        options,
+        instance
+    }: INodeInstanceConfig = {
+        id: createRandomId(),
+        options: defaultLibp2pConfig,
+        instance: null
+    }) {
         if (!id) {
-            id = Math.random().toString(36).substring(7);
+            id = createRandomId()
         }
         this.id = id;
 
         if (!instance) {
             const createNewLibp2pInstance = async () => {
-                instance = await createLibp2p(libp2pConfig as Libp2pOptions);
+                instance = await createLibp2p(options as Libp2pOptions);
             };
             createNewLibp2pInstance();
 
@@ -29,14 +35,58 @@ class Libp2pInstance {
         }
         this.instance = instance;
     }
+
+    public getID(): string {
+        return this.id;
+    }
+    
+    public getInstance(): Libp2p {
+        return this.instance;
+    }
+
+    public async getStatus(): Promise<INodeActionResponse> {
+        const status = this.instance.status
+        return {
+            code: 100,
+            message: status.toString()
+        } as INodeActionResponse
+    }
+
+    public async start(): Promise<INodeActionResponse> {
+        await this.instance.start()
+        return {
+            code: 100,
+            message: 'Libp2p Node started'
+        } as INodeActionResponse
+    }
+
+    public async stop(): Promise<INodeActionResponse> {
+        await this.instance.stop()
+        return {
+            code: 100,
+            message: 'Libp2p Node stopped'
+        } as INodeActionResponse
+    }
+
 }
 
-class Libp2pInstanceManager {
+class Libp2pInstanceManager implements INodeInstancesManager{
     public instances: Map<string, Libp2pInstance> = new Map<string, Libp2pInstance>()
 
+    public constructor(
+        libp2pInstanceOptions: ILibp2pInstanceOptions[] = []
+    ) {
+        for (let i = 0; i < libp2pInstanceOptions.length; i++) {
+            if (!libp2pInstanceOptions[i].instance) {
+                this.createLibp2pInstance()
+            }
+            else if (libp2pInstanceOptions[i].instance) {
+                this.addLibp2pInstance(libp2pInstanceOptions[i].instance)
+            }
+        }
+    }
+
     public createLibp2pInstance(
-        id: string | null = null,
-        libp2pConfig: Libp2pInstanceOptions | null = null
     ) {
         const newInstance = new Libp2pInstance()
         this.instances.set(newInstance.id, newInstance)
@@ -74,8 +124,12 @@ class Libp2pInstanceManager {
     }
 }
 
-let libp2pManager = new Libp2pInstanceManager();
 
+function createLibp2pManager(
+    ILibp2pInstanceOptions: ILibp2pInstanceOptions[] = []
+) {
+    return new Libp2pInstanceManager(ILibp2pInstanceOptions)
+}
 
 export {
     libp2pManager,

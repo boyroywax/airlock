@@ -1,12 +1,18 @@
-import { Libp2p } from 'libp2p';
+import { Libp2p, Libp2pOptions } from 'libp2p';
 
-interface ILibp2pInstanceOptions {
+import { INodeInstance } from './node.js';
+
+
+interface ILibp2pInstance {
     id: string;
-    libp2pConfig: any;
-    instance: Libp2p | null;
+    instance: Libp2p;
 }
 
+interface ILibp2pInstanceManager {
+
+
 export {
-    ILibp2pInstanceOptions
+    ILibp2pInstanceConfig,
+    ILibp2pInstance
 }
 
