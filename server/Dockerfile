@@ -3,8 +3,7 @@ FROM node:21.5-bookworm-slim
 WORKDIR /usr/app/webapp/
 
 RUN npm install -g \ 
-    npm@10.3.0 \
-    serve@14.0.1
+    npm@10.3.0
 
 COPY package*.json ./
 

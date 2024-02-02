@@ -16,7 +16,6 @@ import { ipnsValidator } from 'ipns/validator'
 import { ipnsSelector } from 'ipns/selector'
 import { mdns } from '@libp2p/mdns'
 import { mplex } from '@libp2p/mplex'
-import { Libp2p, createLibp2p  } from 'libp2p'
 
 
 const defaultBootstrapConfig: any = {
@@ -93,20 +92,6 @@ const defaultLibp2pConfig: any = {
     }
 }
 
-class Libp2pNode {
-    public instance: Libp2p | null = null;
-
-    public constructor(
-        libp2pConfig: any = defaultLibp2pConfig
-    ) {
-        const initialize = async () => {
-            this.instance = await createLibp2p(libp2pConfig);
-        };
-
-        initialize();
-    }
-}
-
 export {
-    Libp2pNode
+    defaultLibp2pConfig
 }

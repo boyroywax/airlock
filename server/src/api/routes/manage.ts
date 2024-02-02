@@ -1,16 +1,17 @@
 'use strict';
 
 import express, { Request, Response, } from 'express';
+import { router } from './index.js';
 import { OrbitDBNode, OrbitDBNodeOptions, OrbitDBTypes } from '../../models/orbitdb.js';
 
 
-const orbitDbOptions: OrbitDBNodeOptions = {
-    databaseName: 'ab1-orbitdb-ipfs-trnkt-xyz',
-    databaseType: OrbitDBTypes.EventLog,
-    enableDID: true
-}
+// const orbitDbOptions: OrbitDBNodeOptions = {
+//     databaseName: 'ab1-orbitdb-ipfs-trnkt-xyz',
+//     databaseType: OrbitDBTypes.EventLog,
+//     enableDID: true
+// }
 
-const odb: OrbitDBNode = new OrbitDBNode(orbitDbOptions);
+// const odb: OrbitDBNode = new OrbitDBNode(orbitDbOptions);
 
 const orbitdbRouter = express.Router();
 
@@ -29,7 +30,7 @@ const orbitdbRouter = express.Router();
  *     example: /or
  * 
  */
-orbitdbRouter.get('/api/orbitdb/address', async function(req: Request, res: Response) {
+router.get('/api/orbitdb/address', async function(req: Request, res: Response) {
     res.send(await odb.openDb.address.toString());
 })
 
@@ -48,7 +49,7 @@ orbitdbRouter.get('/api/orbitdb/address', async function(req: Request, res: Resp
  *     example: /or
  * 
  */
-orbitdbRouter.get('/api/orbitdb/close', async function(req: Request, res: Response) {
+router.get('/api/orbitdb/close', async function(req: Request, res: Response) {
     res.send(await odb.closeDb());
 })
     

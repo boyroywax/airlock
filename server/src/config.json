@@ -1,0 +1,17 @@
+{
+    "databases": [
+        {
+            "name": "test-events",
+            "type": "events"
+
+        },
+        {
+            "name": "test-keyvalue",
+            "type": "keyvalue"
+        },
+        {
+            "name": "test-documents",
+            "type": "documents"
+        }
+    ]
+}

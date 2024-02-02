@@ -1,4 +1,3 @@
-import { ApiServer } from "./server.js";
 import { OrbitDBNodeManager } from "../db/index.js";
 import { AirlockServerOptions } from "../index.js";
 
@@ -18,6 +17,8 @@ class AirlockServerApi {
         const server = new ApiServer(options);
     }
 }
+
+const
 
 export {
     AirlockServerApi
