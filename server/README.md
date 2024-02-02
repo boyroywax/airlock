@@ -38,16 +38,16 @@ The API is documented using Swagger and can be accessed at [http://localhost:300
 
 ### Database Management
 
-[] Create a new database
-[] Open an existing database
-[] List all open databases
-[] Close a database
+#### [] Create a new database
+#### [] Open an existing database
+#### [] List all open databases
+#### [] Close a database
 
-### Entry Management
+### Database Entries
 
-[] Add a new entry to a database
-[] Get an entry from a database
-[] Delete an entry from a database
+#### [] Add a new entry to a database
+#### [] Get an entry from a database
+#### [] Delete an entry from a database
 
 
 ## gRPC
@@ -55,7 +55,9 @@ The API is documented using Swagger and can be accessed at [http://localhost:300
 gRPC is coming soon
 
 
+## Contributing
 
+Please see the [contributing guide](CONTRIBUTING.md) for more information on how to contribute to this project.
 
 
 
