@@ -16,7 +16,7 @@ const verifyLibp2pNode = (libp2p?: Libp2pNode): Libp2pNode => {
 }
 
 
-class HeliaNodeConfig implements INodeConfig {
+class HeliaConfig implements INodeConfig {
     public options: HeliaNodeOptions;
     public id?: string;
     public instance?: Helia;
@@ -46,7 +46,7 @@ class IPFSNode implements INode {
         id,
         options,
         instance
-    }: HeliaNodeConfig = new HeliaNodeConfig()) {
+    }: HeliaConfig = new HeliaConfig()) {
         if (!instance || instance === null || instance === undefined) {
             createHelia({
                 libp2p: options.libp2p.getInstance(),
@@ -119,4 +119,9 @@ class IPFSNode implements INode {
         }
         return response
     }
+}
+
+export {
+    HeliaConfig,
+    IPFSNode
 }
