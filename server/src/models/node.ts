@@ -1,6 +1,9 @@
 import { Helia } from 'helia';
+import { Libp2pOptions } from 'libp2p';
 import { Libp2p, ServiceMap } from '@libp2p/interface';
 import { OrbitDB, Database } from '@orbitdb/core';
+
+import { HeliaNodeOptions } from './helia.js';
 
 
 /*
@@ -8,7 +11,7 @@ import { OrbitDB, Database } from '@orbitdb/core';
 */
 interface INodeConfig {
     id?: string | undefined;
-    options?: any;
+    options?: Libp2pOptions | HeliaNodeOptions | undefined;
     instance?: Helia | Libp2p<ServiceMap> | typeof OrbitDB | typeof Database | undefined;
 }
 

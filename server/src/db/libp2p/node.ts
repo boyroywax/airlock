@@ -23,7 +23,7 @@ class Libp2pNodeConfig implements INodeConfig {
 
 
 class Libp2pNode implements INode {
-    public id: string = createRandomId();
+    public id: string;
     public instance: Libp2p;
 
     public constructor({
@@ -38,7 +38,6 @@ class Libp2pNode implements INode {
         }
         this.instance = instance ? instance : "No instance provided" as unknown as Libp2p;
         this.id = id || createRandomId();
-
     }
 
     public getWorkerID(): string {
@@ -62,19 +61,39 @@ class Libp2pNode implements INode {
     }
 
     public async start(): Promise<INodeActionResponse> {
-        await this.instance.start()
-        return {
-            code: 100,
-            message: 'Libp2p Node started'
-        } as INodeActionResponse
+        let response: INodeActionResponse
+        try {
+            await this.instance.start()
+            response = {
+                code: 100,
+                message: 'Libp2p Node started'
+            }
+        } catch (error: any) {
+            response = {
+                code: 101,
+                message: 'Libp2p Node failed to start',
+                error: error
+            }
+        }
+        return response
     }
 
     public async stop(): Promise<INodeActionResponse> {
-        await this.instance.stop()
-        return {
-            code: 100,
-            message: 'Libp2p Node stopped'
-        } as INodeActionResponse
+        let response: INodeActionResponse
+        try {
+            await this.instance.stop()
+            response = {
+                code: 100,
+                message: 'Libp2p Node stopped'
+            }
+        } catch (error: any) {
+            response = {
+                code: 101,
+                message: 'Libp2p Node failed to stop',
+                error: error
+            }
+        }
+        return response
     }
 }
 
