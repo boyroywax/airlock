@@ -6,6 +6,8 @@ const router = express.Router();
  * /api/v0/metrics/ping:
  *  get:
  *   summary: Returns a Hello World message
+ *   tags:
+ *    - metrics
  *   responses:
  *    200:
  *     description: Hello World!

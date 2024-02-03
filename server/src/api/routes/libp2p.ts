@@ -19,9 +19,32 @@ const activeNode = (id: Libp2pNode['id']) => {
 
 /**
  * @openapi
+ * components:
+ *  schemas:
+ *   Libp2pNode:
+ *    type: object
+ *    properties:
+ *     id:
+ *      type: string
+ *      description: The System Worker ID of the libp2p node
+ *      example: "abcd123"
+ *     peerID:
+ *      type: string
+ *      description: The Peer ID of the libp2p node
+ *      example: "QmXt3Yz8v3Z6"
+ *     status:
+ *      type: string
+ *      description: The status of the libp2p node
+ *      example: "started"
+ */
+
+/**
+ * @openapi
  * /api/v0/libp2p/create:
  *  post:
  *   summary: Creates a libp2p node
+ *   tags:
+ *    - libp2p
  *   requestBody:
  *    description: Node ID
  *    required: true
@@ -54,18 +77,17 @@ router.post('/libp2p/create', (req: Libp2pBaseRequest, res: Response) => {
  * /api/v0/libp2p/list:
  *  get:
  *   summary: Lists all libp2p nodes
+ *   tags:
+ *    - libp2p
  *   responses:
  *    200:
  *     description: The result of the operation
  *     content:
  *      application/json:
  *       schema:
- *        type: object
- *        properties:
- *         nodes:
- *          type: array
- *          items:
- *           type: string
+ *        type: array
+ *        items:
+ *         libp2pNode: string
  *     example: /or
  *  */
 router.get('/libp2p/list', async (req: Request, res: Response) => {
@@ -78,6 +100,8 @@ router.get('/libp2p/list', async (req: Request, res: Response) => {
  * /api/v0/libp2p/remove:
  *  post:
  *   summary: Removes a libp2p node
+ *   tags:
+ *    - libp2p
  *   requestBody:
  *    description: Node ID
  *    required: true
@@ -107,6 +131,8 @@ router.post('/libp2p/remove', (req: Libp2pBaseRequest, res: Response) => {
  * /api/v0/libp2p/node/id:
  *  post:
  *   summary: Returns the Peer ID of a libp2p node
+ *   tags:
+ *    - libp2p
  *   requestBody:
  *    description: Node ID
  *    required: true
@@ -138,6 +164,8 @@ router.post('/libp2p/node/id', (req: Libp2pBaseRequest, res: Response) => {
  * /api/v0/libp2p/node/status:
  *  post:
  *   summary: Returns the status of a libp2p node
+ *   tags:
+ *    - libp2p
  *   requestBody:
  *    description: Node ID
  *    required: true
@@ -168,6 +196,8 @@ router.post('/libp2p/node/status', (req: Libp2pBaseRequest, res: Response) => {
  * /api/v0/libp2p/node/start:
  *  post:
  *   summary: Starts a libp2p node
+ *   tags:
+ *    - libp2p
  *   requestBody:
  *    description: Node ID
  *    required: true
@@ -198,6 +228,8 @@ router.post('/libp2p/node/start', async (req: Libp2pBaseRequest, res: Response) 
  * /api/v0/libp2p/node/stop:
  *  post:
  *   summary: Stops a libp2p node
+ *   tags:
+ *    - libp2p
  *   requestBody:
  *    description: Node ID
  *    required: true
