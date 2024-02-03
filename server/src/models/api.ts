@@ -9,6 +9,7 @@ interface Libp2pBaseRequest extends Request {
 interface IPFSBaseRequest extends Request {
     body: {
         id: string;
+        options?: {}
     }
 }
 

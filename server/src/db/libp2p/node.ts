@@ -31,12 +31,21 @@ class Libp2pNode implements INode {
         options,
         instance
     }: Libp2pNodeConfig = new Libp2pNodeConfig()) {
+        let passedInstance: Libp2p | undefined = undefined;
         if (!instance || instance === null || instance === undefined) {
             createLibp2p(options as Libp2pOptions).then((libp2p) => {
-                this.instance = libp2p;
+                passedInstance = libp2p;
             });
         }
-        this.instance = instance ? instance : "No instance provided" as unknown as Libp2p;
+        else if (instance) {
+            passedInstance = instance;
+        }
+        else {
+            throw new Error('Libp2p Node failed to initialize');
+            
+        }
+
+        this.instance = passedInstance as Libp2p;
         this.id = id || createRandomId();
     }
 
@@ -70,7 +79,7 @@ class Libp2pNode implements INode {
             }
         } catch (error: any) {
             response = {
-                code: 101,
+                code: 104,
                 message: 'Libp2p Node failed to start',
                 error: error
             }
@@ -88,7 +97,7 @@ class Libp2pNode implements INode {
             }
         } catch (error: any) {
             response = {
-                code: 101,
+                code: 104,
                 message: 'Libp2p Node failed to stop',
                 error: error
             }

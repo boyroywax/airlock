@@ -6,18 +6,11 @@ import { Libp2pNode } from '../libp2p/node.js';
 import { INode, INodeActionResponse, INodeConfig } from '../../models/node.js';
 import { HeliaNodeOptions } from '../../models/helia.js';
 import { createRandomId } from '../../utils/index.js';
-import { create } from 'domain';
 
 
-
-
-
-const verifyLibp2pNode = (libp2pWorker?: Libp2pNode | Libp2pNode['id']): Libp2pNode['id'] | INodeActionResponse => {
+const verifyLibp2pNode = (libp2pWorker: Libp2pNode ): Libp2pNode['id'] | INodeActionResponse => {
     if (libp2pWorker instanceof Libp2pNode) {
         return libp2pWorker.getWorkerID();
-    }
-    else if (typeof libp2pWorker === 'string') {
-        return libp2pWorker;
     }
     else {
         return {
@@ -30,17 +23,13 @@ const verifyLibp2pNode = (libp2pWorker?: Libp2pNode | Libp2pNode['id']): Libp2pN
 
 
 class HeliaConfig implements INodeConfig {
+    public id: string;
     public options: HeliaNodeOptions;
-    public id?: string;
     public instance?: Helia;
 
     public constructor(
         id: string = createRandomId(),
-        options: HeliaNodeOptions = {
-            blockstore: new MemoryBlockstore(),
-            datastore: new MemoryDatastore(),
-            libp2p: undefined,
-        } as HeliaNodeOptions,
+        options: HeliaNodeOptions,
         instance?: Helia
     ) {
         this.id = id;
@@ -59,18 +48,39 @@ class IPFSNode implements INode {
         id,
         options,
         instance
-    }: HeliaConfig = new HeliaConfig()) {
-        if (options.libp2p && options.libp2p instanceof Libp2pNode) {
-            this.libp2pWorkerID = verifyLibp2pNode(options.libp2p);
+    }: HeliaConfig) {
+        if (!options) {
+            options = {
+                blockstore: new MemoryBlockstore(),
+                datastore: new MemoryDatastore(),
+                libp2p: new Libp2pNode()
+            }
+        }
+        
+
+        let heliaInstance: IPFSNode['instance'] | undefined = undefined;
+
+        if (instance) {
+            heliaInstance = instance;
+        }
+        
+        if ((!instance || instance === null || instance === undefined) &&
+            options.blockstore && options.datastore && options.libp2p
+        ) {
             createHelia({
-                libp2p: options.libp2p.getInstance(),
-                blockstore: options.blockstore,
-                datastore: options.datastore
+                blockstore: options.blockstore as MemoryBlockstore,
+                datastore: options.datastore as MemoryDatastore,
+                libp2p: options.libp2p.getInstance()
             }).then((helia) => {
-                this.instance = helia;
+                heliaInstance = helia;
             });
         }
-        else if ()
+ 
+        this.libp2pWorkerID = verifyLibp2pNode(options.libp2p);
+
+        this.instance = heliaInstance as Helia;
+  
+        this.id = id ? id: createRandomId();
     }
 
     public getWorkerID(): string {
@@ -85,7 +95,7 @@ class IPFSNode implements INode {
         return this.instance;
     }
 
-    public getLibp2pWorkerID(): string {
+    public getLibp2pWorkerID(): string | INodeActionResponse {
         return this.libp2pWorkerID;
     }
 

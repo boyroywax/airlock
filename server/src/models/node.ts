@@ -10,9 +10,9 @@ import { HeliaNodeOptions } from './helia.js';
     Node Instances are the base class for all node instances (IPFS, OrbitDB, Libp2p, etc.)
 */
 interface INodeConfig {
-    id?: string | undefined;
-    options?: Libp2pOptions | HeliaNodeOptions | undefined;
-    instance?: Helia | Libp2p<ServiceMap> | typeof OrbitDB | typeof Database | undefined;
+    id: string;
+    options?: Libp2pOptions | HeliaNodeOptions;
+    instance?: Helia | Libp2p<ServiceMap> | typeof OrbitDB | typeof Database;
 }
 
 interface INode {
