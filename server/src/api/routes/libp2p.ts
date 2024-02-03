@@ -72,6 +72,67 @@ router.get('/libp2p/list', async (req: Request, res: Response) => {
     res.send(libp2pNodesManager.list());
 });
 
+
+/**
+ * @openapi
+ * /api/v0/libp2p/remove:
+ *  post:
+ *   summary: Removes a libp2p node
+ *   requestBody:
+ *    description: Node ID
+ *    required: true
+ *    content:
+ *     application/json:
+ *      schema:
+ *       type: object
+ *       properties:
+ *        id:
+ *         type: string
+ *         example: "abcd123"
+ *   responses:
+ *    200:
+ *     description: The result of the operation
+ *     content:
+ *      application/json:
+ *       schema:
+ *        type: string
+ *     example: /or
+ *  */
+router.post('/libp2p/remove', (req: Libp2pBaseRequest, res: Response) => {
+    res.send(libp2pNodesManager.delete(req.body.id));
+});
+
+/**
+ * @openapi
+ * /api/v0/libp2p/node/id:
+ *  post:
+ *   summary: Returns the Peer ID of a libp2p node
+ *   requestBody:
+ *    description: Node ID
+ *    required: true
+ *    content:
+ *     application/json:
+ *      schema:
+ *       type: object
+ *       properties:
+ *        id:
+ *         type: string
+ *         example: "abcd123"
+ *   responses:
+ *    200:
+ *     description: The result of the operation
+ *     content:
+ *      application/json:
+ *       schema:
+ *        type: string
+ *     example: /or
+ *  */
+router.post('/libp2p/node/id', (req: Libp2pBaseRequest, res: Response) => {
+    const libp2pNode = activeNode(req.body.id);
+    res.send(libp2pNode.getPeerID());
+});
+
+
 /**
  * @openapi
  * /api/v0/libp2p/node/status:

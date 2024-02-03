@@ -16,9 +16,10 @@ interface INode {
     id: string;
     instance:  Helia | Libp2p<ServiceMap> | typeof OrbitDB | typeof Database;
 
-    getID(): INode['id'];
     getInstance(): INode['instance'];
+    getPeerID(): string;
     getStatus(): INodeActionResponse;
+    getWorkerID(): INode['id'];
     start(): Promise<INodeActionResponse>;
     stop(): Promise<INodeActionResponse>;
 

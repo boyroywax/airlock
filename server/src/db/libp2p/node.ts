@@ -41,8 +41,12 @@ class Libp2pNode implements INode {
 
     }
 
-    public getID(): string {
+    public getWorkerID(): string {
         return this.id;
+    }
+
+    public getPeerID(): string {
+        return this.instance.peerId.toString();
     }
     
     public getInstance(): Libp2p<ServiceMap> {
