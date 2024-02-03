@@ -1,15 +1,25 @@
 import express from 'express';
-
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 
+import { libp2pRouter, metricsRouter } from './routes/index.js';
+
+const defaultRouters = [
+    libp2pRouter,
+    metricsRouter
+]
+
 
 class ApiServerOptions {
-    public port: number = 3000;
-    public routers: express.Router[] = [];
+    public port: number;
+    public routers: express.Router[];
 
-    public constructor(port: number) {
+    public constructor(
+        routers: express.Router[] = defaultRouters,
+        port: number = 3000
+    ) {
         this.port = port;
+        this.routers = routers;
     }
 }
 
@@ -48,10 +58,10 @@ class ApiServer {
             },
             // Path to the API docs
             apis: [
-                './src/routes/*.ts',
-                './src/models/*.ts',
-                './dist/routes/*.js',
-                './dist/models/*.js'
+                './src/api/routes/*.ts',
+                './src/api/models/*.ts',
+                './dist/api/routes/*.js',
+                './dist/api/models/*.js'
             ]
         };
 
@@ -62,7 +72,7 @@ class ApiServer {
         this.app.use('/api/docs', swaggerUi.serve)
         this.app.get('/api/docs', swaggerUi.setup(specs, { explorer: true }))
 
-        this.app.use('/', ...this.routers);
+        this.app.use('/api/v0', this.routers);
     }
 
     public start() {

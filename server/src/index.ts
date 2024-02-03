@@ -1,39 +1,37 @@
-import { AirlockServerApi } from './api/index.js';
-import { OrbitDBNode, OrbitDBNodeManager } from './db/index.js';
-import { OrbitDBNodeOptions } from './models/orbitdb.js';
+import { ApiServer, ApiServerOptions } from './api/index.js';
+import { Libp2pNodeConfig } from './db/libp2p/node.js';
 
 class AirlockServerOptions {
-    public port: number = 3000;
+    public apiConfig: ApiServerOptions;
+    public libp2pConfig: Libp2pNodeConfig;
 
-    public constructor(port: number) {
-        this.port = port;
+    public constructor(
+        apiConfig: ApiServerOptions = new ApiServerOptions(),
+        libp2pConfig: Libp2pNodeConfig = new Libp2pNodeConfig()
+    ) {
+        this.apiConfig = apiConfig;
+        this.libp2pConfig = libp2pConfig;
     }
 }
 
 class AirlockServer {
-    public manager: OrbitDBNodeManager;
+    public api: ApiServer;
 
-    public constructor(
-        orbtiDBNodeOptions: OrbitDBNodeOptions[],
-        serverOptions: AirlockServerOptions
+    constructor(
+        options: AirlockServerOptions = new AirlockServerOptions()
     ) {
-        this.manager = new OrbitDBNodeManager();
+        this.api = new ApiServer(options.apiConfig)
+    }
 
-        for (const options of orbtiDBNodeOptions) {
-            this.manager.createNode(options);
-            console.log(`OrbitDB Node created: ${options.databaseName}`);
-        }
-
-        const server = new AirlockServerApi(
-            this.manager,
-            serverOptions
-        );
+    public init() {
+        this.api.start();
     }
 }
 
+const airlockServer = new AirlockServer();
+airlockServer.init();
+
 export {
     AirlockServer,
-    AirlockServerOptions,
-    OrbitDBNodeManager,
-    OrbitDBNode
+    AirlockServerOptions
 }

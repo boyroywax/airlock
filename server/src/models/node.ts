@@ -1,19 +1,24 @@
+import { Helia } from 'helia';
+import { Libp2p, ServiceMap } from '@libp2p/interface';
+import { OrbitDB, Database } from '@orbitdb/core';
+
+
 /*
     Node Instances are the base class for all node instances (IPFS, OrbitDB, Libp2p, etc.)
 */
 interface INodeConfig {
     id?: string | undefined;
     options?: any;
-    instance?: any;
+    instance?: Helia | Libp2p<ServiceMap> | typeof OrbitDB | typeof Database | undefined;
 }
 
 interface INode {
     id: string;
-    instance: any;
+    instance:  Helia | Libp2p<ServiceMap> | typeof OrbitDB | typeof Database;
 
     getID(): INode['id'];
     getInstance(): INode['instance'];
-    getStatus(): Promise<INodeActionResponse>;
+    getStatus(): INodeActionResponse;
     start(): Promise<INodeActionResponse>;
     stop(): Promise<INodeActionResponse>;
 
@@ -33,25 +38,8 @@ interface INodeActionResponse {
     error?: Error;
 }
 
-interface INodesManagerConfig {
-    instances?: Map<string, INode>;
-    options?: INodeConfig[];
-}
-
-interface INodesManager {
-    instances: Map<string, INode>;
-
-    create(config: INodeConfig): INodeActionResponse;  // creates a new instance and adds it to the instances map
-    add(instance: INode): INodeActionResponse;  // adds an existing instance to the instances map
-    get(id: INode['id']): INode;  // returns an instance by id
-    list(): INode[];  // returns an array of all instances
-    delete(id: INode['id']): INodeActionResponse;  // deletes an instance by id
-}
-
 export {
     INode,
     INodeActionResponse,
-    INodeConfig,
-    INodesManager,
-    INodesManagerConfig
+    INodeConfig
 }

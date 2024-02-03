@@ -1,10 +1,7 @@
-import express from 'express';
-import { AirlockDB } from '../../db';
-import { OrbitDBNodeOptions } from '../../models/orbitdb';
+import { libp2pRouter } from "./libp2p.js";
+import { metricsRouter } from "./metrics.js";
 
-const router = express.Router();
-
-
-
-
-export { router };
+export {
+    libp2pRouter,
+    metricsRouter
+}

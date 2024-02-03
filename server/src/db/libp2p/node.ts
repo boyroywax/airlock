@@ -1,54 +1,59 @@
-import { Libp2p, Libp2pOptions, createLibp2p } from 'libp2p'
-import { defaultLibp2pConfig } from './publicConfigDefault.js'
-import { INodeConfig, INode, INodeActionResponse } from '../../models/index.js'
+import { Libp2pStatus, ServiceMap } from '@libp2p/interface';
+import { Libp2p, Libp2pOptions, createLibp2p } from 'libp2p';
+
+import { defaultLibp2pConfig } from './publicConfigDefault.js';
+import { INodeConfig, INode, INodeActionResponse } from '../../models/index.js';
 import { createRandomId } from '../../utils/index.js';
+
+class Libp2pNodeConfig implements INodeConfig {
+    public id: string;
+    public options?: Libp2pOptions;
+    public instance?: Libp2p;
+
+    public constructor(
+        id: string = createRandomId(),
+        options: Libp2pOptions = defaultLibp2pConfig,
+        instance?: Libp2p
+    ) {
+        this.id = id;
+        this.options = options;
+        this.instance = instance;
+    }
+}
 
 
 class Libp2pNode implements INode {
-
-    public id: string;
+    public id: string = createRandomId();
     public instance: Libp2p;
 
     public constructor({
         id,
         options,
         instance
-    }: INodeConfig = {
-        id: createRandomId(),
-        options: defaultLibp2pConfig,
-        instance: null
-    }) {
-        if (!id) {
-            id = createRandomId()
+    }: Libp2pNodeConfig = new Libp2pNodeConfig()) {
+        if (!instance || instance === null || instance === undefined) {
+            createLibp2p(options as Libp2pOptions).then((libp2p) => {
+                this.instance = libp2p;
+            });
         }
-        this.id = id;
+        this.instance = instance ? instance : "No instance provided" as unknown as Libp2p;
+        this.id = id || createRandomId();
 
-        if (!instance) {
-            const createNewLibp2p = async () => {
-                instance = await createLibp2p(options as Libp2pOptions);
-            };
-            createNewLibp2p();
-
-            if (!instance) {
-                throw new Error('Libp2p instance not created');
-            }
-        }
-        this.instance = instance;
     }
 
     public getID(): string {
         return this.id;
     }
     
-    public getInstance(): Libp2p {
+    public getInstance(): Libp2p<ServiceMap> {
         return this.instance;
     }
 
-    public async getStatus(): Promise<INodeActionResponse> {
-        const status = this.instance.status
+    public getStatus(): INodeActionResponse {
+        const status: Libp2pStatus = this.instance.status
         return {
             code: 100,
-            message: status.toString()
+            message: status
         } as INodeActionResponse
     }
 
@@ -67,9 +72,9 @@ class Libp2pNode implements INode {
             message: 'Libp2p Node stopped'
         } as INodeActionResponse
     }
-
 }
 
 export {
-    Libp2pNode
+    Libp2pNode,
+    Libp2pNodeConfig
 }

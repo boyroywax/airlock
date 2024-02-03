@@ -1,10 +1,9 @@
-import { Request, Response } from 'express';
-import { router } from './index.js';
+import express, { Request, Response } from 'express';
 
-
+const router = express.Router();
 /**
  * @openapi
- * /api/hello:
+ * /api/v0/metrics/ping:
  *  get:
  *   summary: Returns a Hello World message
  *   responses:
@@ -17,8 +16,10 @@ import { router } from './index.js';
  *     example: /or
  * 
  */
-router.get('/api/hello', function(req: Request, res: Response) {
+router.get('/metrics/ping', function(req: Request, res: Response) {
     res.send('Hello World!');
 });
 
-export { router };
+export {
+    router as metricsRouter
+};
