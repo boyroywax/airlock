@@ -59,11 +59,11 @@ class Libp2pNodesManager implements INodesManager{
         return this.set(libp2pNode, false)
     }
 
-    public list(): INode[] {
-        let libp2ps: Libp2pNode[] = []
+    public list(): string[] {
+        let libp2ps: string[] = []
         for (let [id] of this.instances) {
             console.log(id)                // debug
-            libp2ps.push(this.instances.get(id) as Libp2pNode)
+            libp2ps.push(id)
         }
         return libp2ps
     }

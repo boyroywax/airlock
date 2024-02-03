@@ -49,6 +49,58 @@ router.post('/libp2p/create', (req: Libp2pBaseRequest, res: Response) => {
     res.send(libp2pNodesManager.create(libp2pNodeConfig));
 });
 
+/**
+ * @openapi
+ * /api/v0/libp2p/list:
+ *  get:
+ *   summary: Lists all libp2p nodes
+ *   responses:
+ *    200:
+ *     description: The result of the operation
+ *     content:
+ *      application/json:
+ *       schema:
+ *        type: object
+ *        properties:
+ *         nodes:
+ *          type: array
+ *          items:
+ *           type: string
+ *     example: /or
+ *  */
+router.get('/libp2p/list', async (req: Request, res: Response) => {
+    res.send(libp2pNodesManager.list());
+});
+
+/**
+ * @openapi
+ * /api/v0/libp2p/node/status:
+ *  post:
+ *   summary: Returns the status of a libp2p node
+ *   requestBody:
+ *    description: Node ID
+ *    required: true
+ *    content:
+ *     application/json:
+ *      schema:
+ *       type: object
+ *       properties:
+ *        id:
+ *         type: string
+ *         example: "abcd123"
+ *   responses:
+ *    200:
+ *     description: The result of the operation
+ *     content:
+ *      application/json:
+ *       schema:
+ *        type: string
+ *     example: /or
+ *  */
+router.post('/libp2p/node/status', (req: Libp2pBaseRequest, res: Response) => {
+    const libp2pNode = activeNode(req.body.id);
+    res.send(libp2pNode.getStatus());
+});
 
 /**
  * @openapi

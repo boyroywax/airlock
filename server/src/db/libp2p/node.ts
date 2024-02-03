@@ -53,7 +53,7 @@ class Libp2pNode implements INode {
         const status: Libp2pStatus = this.instance.status
         return {
             code: 100,
-            message: status
+            message: status.toString()
         } as INodeActionResponse
     }
 
