@@ -1,12 +1,12 @@
 
-import { INodesManager, INodeActionResponse, INodeConfig, INode } from '../../models/index.js'
+import { INodesManager, INodeActionResponse } from '../../models/index.js'
 import { Libp2pNode, Libp2pNodeConfig } from './node.js';
 
 class Libp2pNodesManager implements INodesManager{
     public instances: Map<string, Libp2pNode> = new Map<string, Libp2pNode>()
 
     public constructor(
-        config: Libp2pNodeConfig[] = [new Libp2pNodeConfig()]
+        config: Libp2pNodeConfig[] = []
     ) {
         console.log(config)                // debug
         config.forEach((libp2pNodeConfig) => {
@@ -100,9 +100,22 @@ class Libp2pNodesManager implements INodesManager{
 }
 
 
+/**
+ * @function createLibp2pManager
+ * @param libp2pOptions : Libp2pNodeConfig[]
+ * @param applyDefaults : boolean
+ * @returns Libp2pNodesManager
+ * @description Creates a new Libp2pNodesManager instance
+ * @summary This function creates a new Libp2pNodesManager instance, if no options are provided,
+ * it will create a default libp2p peer instance
+ */
 function createLibp2pManager(
-    libp2pOptions: Libp2pNodeConfig[] = [new Libp2pNodeConfig()]
+    libp2pOptions: Libp2pNodeConfig[] = [],
+    applyDefaults: boolean = true
 ) {
+    if (libp2pOptions.length === 0 && applyDefaults) {
+        libp2pOptions.push(new Libp2pNodeConfig())
+    }
     return new Libp2pNodesManager(libp2pOptions)
 }
 

@@ -6,6 +6,13 @@ interface Libp2pBaseRequest extends Request {
     }
 }
 
+interface IPFSBaseRequest extends Request {
+    body: {
+        id: string;
+    }
+}
+
 export {
-    Libp2pBaseRequest
+    Libp2pBaseRequest,
+    IPFSBaseRequest
 }

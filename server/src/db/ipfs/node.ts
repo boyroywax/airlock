@@ -6,13 +6,26 @@ import { Libp2pNode } from '../libp2p/node.js';
 import { INode, INodeActionResponse, INodeConfig } from '../../models/node.js';
 import { HeliaNodeOptions } from '../../models/helia.js';
 import { createRandomId } from '../../utils/index.js';
+import { create } from 'domain';
 
 
-const verifyLibp2pNode = (libp2p?: Libp2pNode): Libp2pNode => {
-    if (libp2p?.instance) {
-        return libp2p;
+
+
+
+const verifyLibp2pNode = (libp2pWorker?: Libp2pNode | Libp2pNode['id']): Libp2pNode['id'] | INodeActionResponse => {
+    if (libp2pWorker instanceof Libp2pNode) {
+        return libp2pWorker.getWorkerID();
     }
-    return new Libp2pNode();
+    else if (typeof libp2pWorker === 'string') {
+        return libp2pWorker;
+    }
+    else {
+        return {
+            code: 202,
+            message: "Invalid Libp2p Worker",
+            error: new Error("Invalid Libp2p Worker")
+        };
+    }
 }
 
 
@@ -26,7 +39,7 @@ class HeliaConfig implements INodeConfig {
         options: HeliaNodeOptions = {
             blockstore: new MemoryBlockstore(),
             datastore: new MemoryDatastore(),
-            libp2p: verifyLibp2pNode(),
+            libp2p: undefined,
         } as HeliaNodeOptions,
         instance?: Helia
     ) {
@@ -40,14 +53,15 @@ class HeliaConfig implements INodeConfig {
 class IPFSNode implements INode {
     public id: string;
     public instance: Helia;
-    public libp2pWorkerID: string;
+    public libp2pWorkerID: Libp2pNode['id'] | INodeActionResponse;
 
     public constructor({
         id,
         options,
         instance
     }: HeliaConfig = new HeliaConfig()) {
-        if (!instance || instance === null || instance === undefined) {
+        if (options.libp2p && options.libp2p instanceof Libp2pNode) {
+            this.libp2pWorkerID = verifyLibp2pNode(options.libp2p);
             createHelia({
                 libp2p: options.libp2p.getInstance(),
                 blockstore: options.blockstore,
@@ -56,9 +70,7 @@ class IPFSNode implements INode {
                 this.instance = helia;
             });
         }
-        this.instance = instance ? instance : "No instance provided" as unknown as Helia;
-        this.id = id || createRandomId();
-        this.libp2pWorkerID = options.libp2p.getWorkerID();
+        else if ()
     }
 
     public getWorkerID(): string {
@@ -94,7 +106,7 @@ class IPFSNode implements INode {
             }
         } catch (error: any) {
             response = {
-                code: 201,
+                code: 202,
                 message: "IPFS Node Failed to Start",
                 error: error
             }
@@ -112,7 +124,7 @@ class IPFSNode implements INode {
             }
         } catch (error: any) {
             response = {
-                code: 201,
+                code: 202,
                 message: "IPFS Node Failed to Stop",
                 error: error
             }

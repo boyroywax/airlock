@@ -7,7 +7,7 @@ import { MemoryDatastore } from "datastore-core"
 interface HeliaNodeOptions {
     blockstore: MemoryBlockstore
     datastore: MemoryDatastore
-    libp2p: Libp2pNode
+    libp2p?: Libp2pNode | Libp2pNode['id']
 }
 
 export {
