@@ -9,11 +9,20 @@ interface Libp2pBaseRequest extends Request {
 interface IPFSBaseRequest extends Request {
     body: {
         id: string;
-        options?: {}
+    }
+}
+
+interface IPFSCreateRequest extends Request {
+    body: {
+        id: string;
+        options: {
+            libp2pWorkerID: string;
+        }
     }
 }
 
 export {
     Libp2pBaseRequest,
+    IPFSCreateRequest,
     IPFSBaseRequest
 }

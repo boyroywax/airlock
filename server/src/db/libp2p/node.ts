@@ -24,7 +24,7 @@ class Libp2pNodeConfig implements INodeConfig {
 
 
 class Libp2pNode implements INode {
-    public id: string; // @ts-ignore
+    public id: string;  // @ts-ignore
     public instance: Libp2p;
 
     public constructor({
@@ -37,23 +37,17 @@ class Libp2pNode implements INode {
             options = defaultLibp2pConfig;
         }
 
-        const newInstance = async (options: Libp2pOptions ) => {
-            this.instance = await createLibp2p(options)
-        }
-
-        if ( !instance ) {
-            newInstance(options)
-        }
-        else {
+        if (instance) {
             this.instance = instance;
         }
 
-        if ( !id ) {
-            this.id = createRandomId();
+        if (!instance) {
+            createLibp2p(options).then((libp2p) => {
+                this.instance = libp2p;
+            });
         }
-        else {
-            this.id = id;
-        }
+
+        this.id = id ? id : createRandomId();
     }
 
     public getWorkerID(): string {

@@ -34,7 +34,7 @@ class HeliaConfig implements INodeConfig {
         instance?: Helia
     ) {
         this.id = id;
-        this.options = {
+        this.options = options ? options :{
             blockstore: new MemoryBlockstore(),
             datastore: new MemoryDatastore(),
             libp2p: new Libp2pNode()
@@ -48,12 +48,20 @@ class IPFSNode implements INode {
     public id: string;
     public instance: Helia;
     public libp2pWorkerID: Libp2pNode['id'] | INodeActionResponse;
+    public status: INodeActionResponse;
 
     public constructor({
         id,
         options,
         instance
     }: HeliaConfig) {
+        this.id = id ? id: createRandomId();
+        this.libp2pWorkerID = verifyLibp2pNode(options.libp2p);
+
+        this.status = {
+            code: 200,
+            message: `IPFS Node ${this.id} creation started...`
+        } as INodeActionResponse;
 
         let heliaInstance: IPFSNode['instance'] | undefined = undefined;
 
@@ -64,20 +72,32 @@ class IPFSNode implements INode {
         if ((!instance || instance === null || instance === undefined) &&
             options.blockstore && options.datastore && options.libp2p
         ) {
+            this.status = {
+                code: 200,
+                message: `IPFS Node ${this.id} Helia creation started...`
+            } as INodeActionResponse;
+
             createHelia({
                 blockstore: options.blockstore as MemoryBlockstore,
                 datastore: options.datastore as MemoryDatastore,
                 libp2p: options.libp2p.getInstance()
             }).then((helia) => {
                 heliaInstance = helia;
+
+                this.status = {
+                    code: 200,
+                    message: `IPFS Node ${this.id} Helia created`
+                } as INodeActionResponse;
+
             });
         }
- 
-        this.libp2pWorkerID = verifyLibp2pNode(options.libp2p);
 
         this.instance = heliaInstance as Helia;
-  
-        this.id = id ? id: createRandomId();
+
+        this.status = {
+            code: 200,
+            message: `IPFS Node ${this.id} creation completed`
+        } as INodeActionResponse;
     }
 
     public getWorkerID(): string {

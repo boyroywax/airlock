@@ -1,10 +1,11 @@
 import express, { Request, Response, } from 'express';
 
 import { IPFSNode, IPFSNodeConfig, IPFSNodesManager } from '../../db/ipfs/index.js';
-import { IPFSBaseRequest } from '../../models/api.js';
+import { IPFSBaseRequest, IPFSCreateRequest } from '../../models/api.js';
 import { INodeActionResponse } from '../../models/node.js';
-import { create } from 'domain';
-
+import { HeliaNodeOptions } from '../../models/helia.js';
+import { libp2pNodesManager } from './libp2p.js';
+import { Libp2pNode } from '../../db/index.js';
 
 const router = express.Router();
 
@@ -28,8 +29,8 @@ const createNode = (config: IPFSNodeConfig): IPFSNode | INodeActionResponse => {
     }
     return {
         code: 202,
-        message: `IPFS Node ${config.id} not found`,
-        error: new Error(`IPFS Node ${config.id} not found`)
+        message: `IPFS Node ${config.id} not created`,
+        error: new Error(`IPFS Node ${config.id} not created`)
     } as INodeActionResponse
 }
 
@@ -91,13 +92,23 @@ const createNode = (config: IPFSNodeConfig): IPFSNode | INodeActionResponse => {
  *        type: string
  *     example: /or
  */
-router.post('/ipfs/create', async function(req: IPFSBaseRequest, res: Response) {
+router.post('/ipfs/create', async function(req: IPFSCreateRequest, res: Response) {
     const id = req.body.id;
     const options = req.body.options;
+    const libp2pNode: Libp2pNode | INodeActionResponse = libp2pNodesManager.get(options.libp2pWorkerID);
 
-    const config = new IPFSNodeConfig(id, options as IPFSNodeConfig['options']);
-    const response = createNode(config);
-    res.send(response);
+    if (libp2pNode instanceof Libp2pNode) {
+        const config = new IPFSNodeConfig(id, {libp2p: libp2pNode} as HeliaNodeOptions);
+        const response = createNode(config);
+        res.send(response);
+    }
+    else {
+        res.send(libp2pNode);
+    }
+
+    // const config = new IPFSNodeConfig(id, {libp2p: libp2pNode} as HeliaNodeOptions);
+    // const response = createNode(config);
+    // res.send(response);
 });
 
 
@@ -121,6 +132,45 @@ router.post('/ipfs/create', async function(req: IPFSBaseRequest, res: Response) 
  */
 router.get('/ipfs/list', async function(req: Request, res: Response) {
     res.send(ipfsNodesManager.list());
+});
+
+/**
+ * @openapi
+ * /api/v0/ipfs/node/start:
+ *  post:
+ *   summary: Starts an IPFS node
+ *   tags:
+ *    - ipfs
+ *   requestBody:
+ *    description: Set the node ID
+ *    required: true
+ *    content:
+ *     application/json:
+ *      schema:
+ *       type: object
+ *       properties:
+ *        id:
+ *         type: string
+ *         example: "abcd123"
+ *   responses:
+ *    200:
+ *     description: The result of the operation
+ *     content:
+ *      application/json:
+ *       schema:
+ *        type: string
+ *     example: /or
+ */
+router.post('/ipfs/node/start', async function(req: IPFSBaseRequest, res: Response) {
+    const ipfsNodeResponse = activeNode(req.body.id);
+    
+    if (ipfsNodeResponse instanceof IPFSNode) {
+        res.send(await ipfsNodeResponse.start());
+    }
+    else {
+        res.send(ipfsNodeResponse);
+    }
+    
 });
 
 export {

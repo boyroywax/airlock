@@ -105,7 +105,7 @@ class IPFSNodesManager implements INodesManager {
 
 /**
  * @function createIPFSNodesManager
- * @param config 
+ * @param config  : HeliaConfig[] = []
  * @returns IPFSNodesManager
  * @description Creates a new IPFSNodesManager instance
  * @summary If no HeliaConfig is provided, the manager will be created without any IPFS Nodes.

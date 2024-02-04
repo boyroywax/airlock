@@ -160,8 +160,10 @@ router.post('/libp2p/node/id', (req: Libp2pBaseRequest, res: Response) => {
     const libp2pNodeResponse = activeNode(req.body.id);
     if (libp2pNodeResponse instanceof Libp2pNode) {
         res.send(libp2pNodeResponse.getPeerID());
+    } 
+    else {
+        res.send(libp2pNodeResponse);
     }
-    res.send(libp2pNodeResponse);
 });
 
 
@@ -197,7 +199,9 @@ router.post('/libp2p/node/status', (req: Libp2pBaseRequest, res: Response) => {
     if (libp2pNodeResponse instanceof Libp2pNode) {
         res.send(libp2pNodeResponse.getStatus());
     }
-    res.send(libp2pNodeResponse);
+    else {
+        res.send(libp2pNodeResponse);
+    }
 });
 
 /**
@@ -291,5 +295,6 @@ router.post('/libp2p/node/stop', async (req: Libp2pBaseRequest, res: Response) =
 });
 
 export {
-    router as libp2pRouter
+    router as libp2pRouter,
+    libp2pNodesManager
 }
