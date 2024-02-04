@@ -9,8 +9,9 @@ import { createRandomId } from '../../utils/index.js';
 
 
 const verifyLibp2pNode = (libp2pWorker: Libp2pNode ): Libp2pNode['id'] | INodeActionResponse => {
-    if (libp2pWorker instanceof Libp2pNode) {
-        return libp2pWorker.getWorkerID();
+    const workerId: string = libp2pWorker.getWorkerID();
+    if (workerId && workerId !== null && workerId !== undefined) {
+        return workerId;
     }
     else {
         return {
@@ -29,11 +30,15 @@ class HeliaConfig implements INodeConfig {
 
     public constructor(
         id: string = createRandomId(),
-        options: HeliaNodeOptions,
+        options?: HeliaNodeOptions,
         instance?: Helia
     ) {
         this.id = id;
-        this.options = options;
+        this.options = {
+            blockstore: new MemoryBlockstore(),
+            datastore: new MemoryDatastore(),
+            libp2p: new Libp2pNode()
+        } as HeliaNodeOptions;
         this.instance = instance;
     }
 }
@@ -49,14 +54,6 @@ class IPFSNode implements INode {
         options,
         instance
     }: HeliaConfig) {
-        if (!options) {
-            options = {
-                blockstore: new MemoryBlockstore(),
-                datastore: new MemoryDatastore(),
-                libp2p: new Libp2pNode()
-            }
-        }
-        
 
         let heliaInstance: IPFSNode['instance'] | undefined = undefined;
 

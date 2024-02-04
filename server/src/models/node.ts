@@ -17,7 +17,7 @@ interface INodeConfig {
 
 interface INode {
     id: string;
-    instance:  Helia | Libp2p<ServiceMap> | typeof OrbitDB | typeof Database;
+    instance?:  Helia | Libp2p<ServiceMap> | typeof OrbitDB | typeof Database;
 
     getInstance(): INode['instance'];
     getPeerID(): string;

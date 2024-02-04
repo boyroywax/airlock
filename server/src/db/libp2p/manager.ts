@@ -72,7 +72,7 @@ class Libp2pNodesManager implements INodesManager{
         id: string
     ): Libp2pNode | INodeActionResponse  {
         const libp2p: Libp2pNode | undefined = this.instances.get(id)
-        if (!libp2p === undefined) {
+        if (libp2p === undefined) {
             return {
                 code: 100,
                 message: `Libp2p Node ${id} not found`,

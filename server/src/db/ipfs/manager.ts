@@ -42,7 +42,7 @@ class IPFSNodesManager implements INodesManager {
         }
         else if (!this.instances.has(helia.id) && isNewNode) {
             returnMsg = {
-                code: 300,
+                code: 200,
                 message: `IPFS Node ${helia.id} created and added`
             }
         }

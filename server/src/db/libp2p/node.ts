@@ -4,6 +4,7 @@ import { Libp2p, Libp2pOptions, createLibp2p } from 'libp2p';
 import { defaultLibp2pConfig } from './publicConfigDefault.js';
 import { INodeConfig, INode, INodeActionResponse } from '../../models/index.js';
 import { createRandomId } from '../../utils/index.js';
+import { create } from 'domain';
 
 class Libp2pNodeConfig implements INodeConfig {
     public id: string;
@@ -23,7 +24,7 @@ class Libp2pNodeConfig implements INodeConfig {
 
 
 class Libp2pNode implements INode {
-    public id: string;
+    public id: string; // @ts-ignore
     public instance: Libp2p;
 
     public constructor({
@@ -31,22 +32,28 @@ class Libp2pNode implements INode {
         options,
         instance
     }: Libp2pNodeConfig = new Libp2pNodeConfig()) {
-        let passedInstance: Libp2p | undefined = undefined;
-        if (!instance || instance === null || instance === undefined) {
-            createLibp2p(options as Libp2pOptions).then((libp2p) => {
-                passedInstance = libp2p;
-            });
-        }
-        else if (instance) {
-            passedInstance = instance;
-        }
-        else {
-            throw new Error('Libp2p Node failed to initialize');
-            
+
+        if ( !options ) {
+            options = defaultLibp2pConfig;
         }
 
-        this.instance = passedInstance as Libp2p;
-        this.id = id || createRandomId();
+        const newInstance = async (options: Libp2pOptions ) => {
+            this.instance = await createLibp2p(options)
+        }
+
+        if ( !instance ) {
+            newInstance(options)
+        }
+        else {
+            this.instance = instance;
+        }
+
+        if ( !id ) {
+            this.id = createRandomId();
+        }
+        else {
+            this.id = id;
+        }
     }
 
     public getWorkerID(): string {
@@ -62,7 +69,7 @@ class Libp2pNode implements INode {
     }
 
     public getStatus(): INodeActionResponse {
-        const status: Libp2pStatus = this.instance.status
+        const status = this.instance.status
         return {
             code: 100,
             message: status.toString()
@@ -93,12 +100,12 @@ class Libp2pNode implements INode {
             await this.instance.stop()
             response = {
                 code: 100,
-                message: 'Libp2p Node stopped'
+                message: `Libp2p ${this.id} Node stopped`
             }
         } catch (error: any) {
             response = {
                 code: 104,
-                message: 'Libp2p Node failed to stop',
+                message: `Libp2p ${this.id} Node failed to stop`,
                 error: error
             }
         }

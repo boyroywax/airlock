@@ -230,9 +230,19 @@ router.post('/libp2p/node/status', (req: Libp2pBaseRequest, res: Response) => {
 router.post('/libp2p/node/start', async (req: Libp2pBaseRequest, res: Response) => {
     const libp2pNodeResponse = activeNode(req.body.id);
     if (libp2pNodeResponse instanceof Libp2pNode) {
-        res.send(await libp2pNodeResponse.start());
+        if (libp2pNodeResponse.getStatus().message === 'started') {
+            res.send({
+                code: 104,
+                message: `Libp2p ${req.body.id} Node is already started`
+            } as INodeActionResponse);
+        }
+        else {
+            res.send(await libp2pNodeResponse.start());
+        }
     }
-    res.send(libp2pNodeResponse);
+    else {
+        res.send(libp2pNodeResponse);
+    }
 });
 
 /**
@@ -265,9 +275,19 @@ router.post('/libp2p/node/start', async (req: Libp2pBaseRequest, res: Response) 
 router.post('/libp2p/node/stop', async (req: Libp2pBaseRequest, res: Response) => {
     const libp2pNodeResponse = activeNode(req.body.id);
     if (libp2pNodeResponse instanceof Libp2pNode) {
-        res.send(await libp2pNodeResponse.stop());
+        if (libp2pNodeResponse.getStatus().message === 'started') {
+            res.send(await libp2pNodeResponse.stop());
+        }
+        else {
+            res.send({
+                code: 104,
+                message: `Libp2p ${req.body.id} Node is not started`
+            } as INodeActionResponse);
+        }
     }
-    res.send(libp2pNodeResponse);
+    else {
+        res.send(libp2pNodeResponse);
+    }
 });
 
 export {
