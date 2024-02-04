@@ -30,15 +30,29 @@ class HeliaConfig implements INodeConfig {
 
     public constructor(
         id: string = createRandomId(),
-        options?: HeliaNodeOptions,
+        options: HeliaNodeOptions,
         instance?: Helia
     ) {
         this.id = id;
-        this.options = options ? options :{
-            blockstore: new MemoryBlockstore(),
-            datastore: new MemoryDatastore(),
-            libp2p: new Libp2pNode()
-        } as HeliaNodeOptions;
+        
+        let ipfsNodeOptions: HeliaNodeOptions | undefined = undefined;
+
+        if (options?.libp2p && options?.blockstore && options?.datastore) {
+            ipfsNodeOptions = options;
+        }
+        else if (options?.libp2p && !options?.blockstore && !options?.datastore) {
+            ipfsNodeOptions = {
+                blockstore: new MemoryBlockstore(),
+                datastore: new MemoryDatastore(),
+                libp2p: options.libp2p
+            }
+        }
+        else if (!options?.libp2p) {
+            throw new Error("Invalid Libp2p Worker");
+        }
+
+        this.options = ipfsNodeOptions as HeliaNodeOptions;
+
         this.instance = instance;
     }
 }
