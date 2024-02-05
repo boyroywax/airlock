@@ -17,8 +17,6 @@ enum Libp2pCommands {
     HANGUP = 'hangUp',
     CLOSE_CONNECTION = 'closeConnection',
     LIST_CONNECTIONS = 'listConnections',
-    SWARM = 'swarm',
-    ID = 'id',
 }
 
 class Libp2pNodeCommand implements INodeCommand {
@@ -26,7 +24,7 @@ class Libp2pNodeCommand implements INodeCommand {
     public args: string[];
 
     public constructor(
-        command: Libp2pCommands,
+        command: Libp2pCommands | string,
         args: string[] = []
     ) {
         this.command = command;
@@ -46,7 +44,7 @@ class Libp2pNodeCommandPlane implements INodeCommandPlane {
         this.nodeWorker = node;
     }
 
-    public async execute(command: Libp2pNodeCommand | INodeCommand): Promise<INodeCommandResponse> {
+    public async execute(command: Libp2pNodeCommand | INodeCommand ): Promise<INodeCommandResponse> {
         let response: INodeCommandResponse = {
             code: 200,
             message: "Command Executed"
@@ -91,12 +89,9 @@ class Libp2pNodeCommandPlane implements INodeCommandPlane {
                         error: error
                     }
                 }
-
-                
-
-            default:
+            case Libp2pCommands.LIST_CONNECTIONS:
                 try {
-                    const output = await this.nodeWorker.runCommand(command.command, command.args)
+                    const output = this.listConnections()
                     response = {
                         code: 200,
                         message: "Command Executed",

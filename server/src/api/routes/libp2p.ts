@@ -3,7 +3,7 @@ import express, { Response, Request, response } from 'express';
 import { Libp2pNode, Libp2pNodeConfig, Libp2pNodesManager, createLibp2pManager } from '../../db/libp2p/index.js';
 import { Libp2pBaseRequest, Libp2pCommandRequest, Libp2pCommandResponse } from '../../models/api.js';
 import { INodeActionResponse, INodeCommandResponse } from '../../models/node.js';
-import { Libp2pNodeCommand } from '../../db/libp2p/commands.js';
+import { Libp2pNodeCommand, Libp2pNodeCommandPlane } from '../../db/libp2p/commands.js';
 
 const router = express.Router();
 
@@ -299,11 +299,11 @@ router.post('/libp2p/node/stop', async (req: Libp2pBaseRequest, res: Response) =
  * @openapi
  * /api/v0/libp2p/node/command:
  *  post:
- *   summary: Runs a command on a libp2p node
+ *   summary: Runs a command on a libp2p node instance
  *   tags:
  *    - libp2p
  *   requestBody:
- *    description: Node ID and Command
+ *    description: Node ID and Command \n \n commands - listConnections, dial, listAddrs, dialProtocol, hangUp, closeConnection
  *    required: true
  *    content:
  *     application/json:
@@ -315,12 +315,12 @@ router.post('/libp2p/node/stop', async (req: Libp2pBaseRequest, res: Response) =
  *         example: "abcd123"
  *        command:
  *         type: string
- *         example: "ping"
+ *         example: "listConnections"
  *        args:
  *         type: array
  *         items:
  *          args: string
- *         example: "[QmXt3Yz8v3Z6]"
+ *         example: ["arg1", "arg2"]
  *   responses:
  *    200:
  *     description: The result of the operation
