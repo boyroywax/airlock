@@ -3,7 +3,7 @@ import express, { Request, Response, } from 'express';
 import { IPFSNode, IPFSNodeConfig, IPFSNodesManager } from '../../db/ipfs/index.js';
 import { IPFSBaseRequest, IPFSCreateRequest } from '../../models/api.js';
 import { INodeActionResponse } from '../../models/node.js';
-import { HeliaNodeOptions } from '../../models/helia.js';
+import { IHeliaNodeOptions } from '../../models/helia.js';
 import { libp2pNodesManager } from './libp2p.js';
 import { Libp2pNode } from '../../db/index.js';
 
@@ -80,7 +80,7 @@ const createNode = (config: IPFSNodeConfig): IPFSNode | INodeActionResponse => {
  *        options:
  *         type: object
  *         properties:
- *          libp2pWorkerID:
+ *          libp2pWorkerId:
  *           type: string
  *           example: "abcd123"
  *   responses:
@@ -95,20 +95,16 @@ const createNode = (config: IPFSNodeConfig): IPFSNode | INodeActionResponse => {
 router.post('/ipfs/create', async function(req: IPFSCreateRequest, res: Response) {
     const id = req.body.id;
     const options = req.body.options;
-    const libp2pNode: Libp2pNode | INodeActionResponse = libp2pNodesManager.get(options.libp2pWorkerID);
+    const libp2pNode: Libp2pNode | INodeActionResponse = libp2pNodesManager.get(options.libp2pWorkerId);
 
     if (libp2pNode instanceof Libp2pNode) {
-        const config = new IPFSNodeConfig(id, {libp2p: libp2pNode} as HeliaNodeOptions);
+        const config = new IPFSNodeConfig(id, {libp2p: libp2pNode} as IHeliaNodeOptions);
         const response = createNode(config);
         res.send(response);
     }
     else {
         res.send(libp2pNode);
     }
-
-    // const config = new IPFSNodeConfig(id, {libp2p: libp2pNode} as HeliaNodeOptions);
-    // const response = createNode(config);
-    // res.send(response);
 });
 
 
@@ -174,5 +170,6 @@ router.post('/ipfs/node/start', async function(req: IPFSBaseRequest, res: Respon
 });
 
 export {
-    router as ipfsRouter
+    router as ipfsRouter,
+    ipfsNodesManager
 }

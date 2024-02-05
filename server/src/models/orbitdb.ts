@@ -1,3 +1,5 @@
+import { IPFSNode } from "../db/ipfs";
+
 enum OrbitDBTypes {
   EventLog = 'events',
   Documents = 'documents',
@@ -6,18 +8,22 @@ enum OrbitDBTypes {
   MetaData = 'meta'
 }
 
-interface OrbitDBOptions {
+interface IOrbitDBOptions {
   databaseType: OrbitDBTypes;
   databaseName: string;
 }
 
-interface OrbitDBDIDOptions {
-  enableDID?: boolean;
+interface IOrbitDBDIDOptions {
+  enableDID: boolean;
 }
 
-interface OrbitDBNodeOptions extends OrbitDBOptions, OrbitDBDIDOptions {}
+interface IOrbitDBNodeSetup {
+  ipfs: IPFSNode;
+}
 
-interface OrbitDBManifest {
+interface IOrbitDBNodeOptions extends IOrbitDBDIDOptions, IOrbitDBNodeSetup {}
+
+interface IOrbitDBManifest {
   name: string;
   type: OrbitDBTypes;
   accessController: string;
@@ -25,8 +31,8 @@ interface OrbitDBManifest {
 
 export {
   OrbitDBTypes,
-  OrbitDBOptions,
-  OrbitDBDIDOptions,
-  OrbitDBManifest,
-  OrbitDBNodeOptions,
+  IOrbitDBOptions,
+  IOrbitDBDIDOptions,
+  IOrbitDBManifest,
+  IOrbitDBNodeOptions,
 }

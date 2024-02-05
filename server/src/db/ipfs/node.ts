@@ -4,7 +4,7 @@ import { MemoryDatastore } from 'datastore-core';
 
 import { Libp2pNode } from '../libp2p/node.js';
 import { INode, INodeActionResponse, INodeConfig } from '../../models/node.js';
-import { HeliaNodeOptions } from '../../models/helia.js';
+import { IHeliaNodeOptions } from '../../models/helia.js';
 import { createRandomId } from '../../utils/index.js';
 
 
@@ -25,17 +25,17 @@ const verifyLibp2pNode = (libp2pWorker: Libp2pNode ): Libp2pNode['id'] | INodeAc
 
 class HeliaConfig implements INodeConfig {
     public id: string;
-    public options: HeliaNodeOptions;
+    public options: IHeliaNodeOptions;
     public instance?: Helia;
 
     public constructor(
         id: string = createRandomId(),
-        options: HeliaNodeOptions,
+        options: IHeliaNodeOptions,
         instance?: Helia
     ) {
         this.id = id;
         
-        let ipfsNodeOptions: HeliaNodeOptions | undefined = undefined;
+        let ipfsNodeOptions: IHeliaNodeOptions | undefined = undefined;
 
         if (options?.libp2p && options?.blockstore && options?.datastore) {
             ipfsNodeOptions = options;
@@ -51,7 +51,7 @@ class HeliaConfig implements INodeConfig {
             throw new Error("Invalid Libp2p Worker");
         }
 
-        this.options = ipfsNodeOptions as HeliaNodeOptions;
+        this.options = ipfsNodeOptions as IHeliaNodeOptions;
 
         this.instance = instance;
     }
@@ -61,7 +61,7 @@ class HeliaConfig implements INodeConfig {
 class IPFSNode implements INode {
     public id: string;
     public instance: Helia;
-    public libp2pWorkerID: Libp2pNode['id'] | INodeActionResponse;
+    public libp2pWorkerId: Libp2pNode['id'] | INodeActionResponse;
     public status: INodeActionResponse;
 
     public constructor({
@@ -70,12 +70,13 @@ class IPFSNode implements INode {
         instance
     }: HeliaConfig) {
         this.id = id ? id: createRandomId();
-        this.libp2pWorkerID = verifyLibp2pNode(options.libp2p);
 
         this.status = {
             code: 200,
             message: `IPFS Node ${this.id} creation started...`
         } as INodeActionResponse;
+
+        this.libp2pWorkerId = verifyLibp2pNode(options.libp2p);
 
         let heliaInstance: IPFSNode['instance'] | undefined = undefined;
 
@@ -127,7 +128,7 @@ class IPFSNode implements INode {
     }
 
     public getLibp2pWorkerID(): string | INodeActionResponse {
-        return this.libp2pWorkerID;
+        return this.libp2pWorkerId;
     }
 
     public getStatus(): INodeActionResponse {
@@ -143,12 +144,12 @@ class IPFSNode implements INode {
             await this.instance.start();
             response = {
                 code: 200,
-                message: "IPFS Node Started"
+                message: `IPFS Node ${this.id} Started`
             }
         } catch (error: any) {
             response = {
                 code: 202,
-                message: "IPFS Node Failed to Start",
+                message: `IPFS Node ${this.id} Failed to Start`,
                 error: error
             }
         }

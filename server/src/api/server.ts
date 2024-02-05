@@ -2,11 +2,12 @@ import express from 'express';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 
-import { libp2pRouter, metricsRouter, ipfsRouter } from './routes/index.js';
+import { libp2pRouter, metricsRouter, ipfsRouter, orbitdbRouter } from './routes/index.js';
 
 const defaultRouters = [
     libp2pRouter,
     ipfsRouter,
+    orbitdbRouter,
     metricsRouter
 ]
 

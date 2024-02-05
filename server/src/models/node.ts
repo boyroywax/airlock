@@ -3,7 +3,8 @@ import { Libp2pOptions } from 'libp2p';
 import { Libp2p, ServiceMap } from '@libp2p/interface';
 import { OrbitDB, Database } from '@orbitdb/core';
 
-import { HeliaNodeOptions } from './helia.js';
+import { IHeliaNodeOptions } from './helia.js';
+import { IOrbitDBNodeOptions } from './orbitdb.js';
 
 
 /*
@@ -11,7 +12,7 @@ import { HeliaNodeOptions } from './helia.js';
 */
 interface INodeConfig {
     id: string;
-    options?: Libp2pOptions | HeliaNodeOptions;
+    options?: Libp2pOptions | IHeliaNodeOptions | IOrbitDBNodeOptions;
     instance?: Helia | Libp2p<ServiceMap> | typeof OrbitDB | typeof Database;
 }
 

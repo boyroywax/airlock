@@ -16,13 +16,30 @@ interface IPFSCreateRequest extends Request {
     body: {
         id: string;
         options: {
-            libp2pWorkerID: string;
+            libp2pWorkerId: string;
+        }
+    }
+}
+
+interface OrbitDBBaseRequest extends Request {
+    body: {
+        id: string;
+    }
+}
+
+interface OrbitDBCreateRequest extends Request {
+    body: {
+        id: string;
+        options: {
+            ipfsWorkerId: string;
         }
     }
 }
 
 export {
     Libp2pBaseRequest,
+    IPFSBaseRequest,
     IPFSCreateRequest,
-    IPFSBaseRequest
+    OrbitDBBaseRequest,
+    OrbitDBCreateRequest
 }

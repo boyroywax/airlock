@@ -4,7 +4,6 @@ import { Libp2p, Libp2pOptions, createLibp2p } from 'libp2p';
 import { defaultLibp2pConfig } from './publicConfigDefault.js';
 import { INodeConfig, INode, INodeActionResponse } from '../../models/index.js';
 import { createRandomId } from '../../utils/index.js';
-import { create } from 'domain';
 
 class Libp2pNodeConfig implements INodeConfig {
     public id: string;
@@ -76,12 +75,12 @@ class Libp2pNode implements INode {
             await this.instance.start()
             response = {
                 code: 100,
-                message: 'Libp2p Node started'
+                message: `Libp2p Node ${this.id} started`
             }
         } catch (error: any) {
             response = {
                 code: 104,
-                message: 'Libp2p Node failed to start',
+                message: `Libp2p Node ${this.id} failed to start`,
                 error: error
             }
         }
@@ -94,12 +93,12 @@ class Libp2pNode implements INode {
             await this.instance.stop()
             response = {
                 code: 100,
-                message: `Libp2p ${this.id} Node stopped`
+                message: `Libp2p Node ${this.id} stopped`
             }
         } catch (error: any) {
             response = {
                 code: 104,
-                message: `Libp2p ${this.id} Node failed to stop`,
+                message: `Libp2p Node ${this.id} failed to stop`,
                 error: error
             }
         }

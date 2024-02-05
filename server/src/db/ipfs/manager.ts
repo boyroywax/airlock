@@ -2,7 +2,7 @@ import { Helia } from "helia";
 
 import { INodesManager, INodeActionResponse } from "../../models/index.js";
 import { IPFSNode, HeliaConfig } from "./node.js";
-import { HeliaNodeOptions } from "../../models/helia.js";
+import { IHeliaNodeOptions } from "../../models/helia.js";
 import { Libp2pNode } from "../libp2p/node.js";
 
 
