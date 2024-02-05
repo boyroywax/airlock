@@ -1,6 +1,5 @@
-import { Libp2p } from 'libp2p';
 import { Multiaddr, multiaddr} from '@multiformats/multiaddr';
-import { Libp2pStatus, ServiceMap, Connection, Stream } from '@libp2p/interface';
+import { Connection, Stream } from '@libp2p/interface';
 
 import { Libp2pNode } from './node.js';
 import { INodeCommandPlane, INodeCommand, INodeCommandResponse } from '../../models/index.js';

@@ -303,7 +303,7 @@ router.post('/libp2p/node/stop', async (req: Libp2pBaseRequest, res: Response) =
  *   tags:
  *    - libp2p
  *   requestBody:
- *    description: Node ID and Command \n \n commands - listConnections, dial, listAddrs, dialProtocol, hangUp, closeConnection
+ *    description: Node ID and Command to run - listConnections, dial, listAddrs, dialProtocol, hangUp, closeConnection
  *    required: true
  *    content:
  *     application/json:
