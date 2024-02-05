@@ -5,6 +5,27 @@ import { OrbitDB, Database } from '@orbitdb/core';
 
 import { IHeliaNodeOptions } from './helia.js';
 import { IOrbitDBNodeOptions } from './orbitdb.js';
+import { Libp2pCommands, Libp2pNodeCommand } from '../db/libp2p/commands.js';
+import { Libp2pNode } from '../db/index.js';
+
+enum NodeInstanceTypes {
+    LIBP2P = 'libp2p',
+    IPFS = 'ipfs',
+    ORBITDB = 'orbitdb'
+}
+
+enum NodeInstanceStatus {
+    STARTED = 'started',
+    STOPPED = 'stopped',
+    ERROR = 'error'
+}
+
+enum NodeCodes {
+    LIBP2P = 100,
+    IPFS = 200,
+    ORBITDB = 300,
+    OPEN_DB = 400
+}   
 
 
 /*
@@ -43,8 +64,30 @@ interface INodeActionResponse {
     error?: Error;
 }
 
+interface INodeCommandPlane {
+    nodeWorker: INode | Libp2pNode;
+
+    execute: (command: INodeCommand | Libp2pNodeCommand) => Promise<INodeCommandResponse>
+}
+
+interface INodeCommand {
+    command: string | Libp2pCommands;
+    args: any;
+}
+
+
+interface INodeCommandResponse {
+    code: number;
+    message: string | INodeActionResponse;
+    output?: any;
+    error?: Error;
+}
+
 export {
     INode,
     INodeActionResponse,
-    INodeConfig
+    INodeConfig,
+    INodeCommandPlane,
+    INodeCommand,
+    INodeCommandResponse
 }

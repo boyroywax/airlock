@@ -1,7 +1,16 @@
 import {
+    INodeLogBook,
+    INodeLogEntry,
+    LogBookNames
+} from "./logs";
+
+import {
     INode,
     INodeActionResponse,
-    INodeConfig
+    INodeConfig,
+    INodeCommandPlane,
+    INodeCommand,
+    INodeCommandResponse,
 } from "./node";
 
 import {
@@ -28,7 +37,7 @@ import {
 } from "./api";
 
 export {
-    // Nodes
+    // Nodes and Managers
     INode,
     INodeActionResponse,
     INodeConfig,
@@ -43,5 +52,11 @@ export {
     IPFSBaseRequest,
     IPFSCreateRequest,
     OrbitDBBaseRequest,
-    OrbitDBCreateRequest
+    OrbitDBCreateRequest,
+    // Command Plane
+    INodeCommandPlane,
+    INodeCommand,
+    INodeCommandResponse,
+    INodeLogBook,
+    INodeLogEntry
 }

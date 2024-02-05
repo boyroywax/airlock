@@ -1,8 +1,9 @@
-import { Libp2pStatus, ServiceMap } from '@libp2p/interface';
+import { ServiceMap } from '@libp2p/interface';
 import { Libp2p, Libp2pOptions, createLibp2p } from 'libp2p';
 
 import { defaultLibp2pConfig } from './publicConfigDefault.js';
-import { INodeConfig, INode, INodeActionResponse } from '../../models/index.js';
+import { Libp2pNodeCommandPlane, Libp2pCommands } from './commands.js';
+import { INodeConfig, INode, INodeActionResponse, INodeCommandResponse } from '../../models/index.js';
 import { createRandomId } from '../../utils/index.js';
 
 class Libp2pNodeConfig implements INodeConfig {
@@ -25,6 +26,8 @@ class Libp2pNodeConfig implements INodeConfig {
 class Libp2pNode implements INode {
     public id: string;  // @ts-ignore
     public instance: Libp2p;
+    public commands?: Libp2pCommands;
+    private commandPlane: Libp2pNodeCommandPlane;
 
     public constructor({
         id,
@@ -47,6 +50,8 @@ class Libp2pNode implements INode {
         }
 
         this.id = id ? id : createRandomId();
+
+        this.commandPlane = new Libp2pNodeCommandPlane(this);
     }
 
     public getWorkerID(): string {
@@ -101,6 +106,22 @@ class Libp2pNode implements INode {
                 message: `Libp2p Node ${this.id} failed to stop`,
                 error: error
             }
+        }
+        return response
+    }
+
+    public async runCommand(command: Libp2pCommands | string, args: string[]): Promise<INodeCommandResponse> {
+        let response: INodeCommandResponse = {
+            code: 100,
+            message: `Libp2p Node ${this.id} failed to run command`
+        }
+        try {
+            return await this.commandPlane.execute({
+                command: command,
+                args: args
+            })
+        } catch (error: any) {
+            response['error'] = error
         }
         return response
     }

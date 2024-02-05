@@ -1,8 +1,27 @@
-import { Request } from 'express';
+import { Request, Response } from 'express';
+import { INodeActionResponse } from './node';
 
 interface Libp2pBaseRequest extends Request {
     body: {
         id: string;
+    }
+}
+
+interface Libp2pCommandRequest extends Request {
+    body: {
+        id: string;
+        command: string;
+        args: string[]
+    }
+}
+
+interface Libp2pCommandResponse extends Response {
+    body: {
+        commandRequest: Libp2pCommandRequest | string;
+        code: number;
+        message: string | INodeActionResponse;
+        output?: any;
+        error?: Error;
     }
 }
 
@@ -38,6 +57,8 @@ interface OrbitDBCreateRequest extends Request {
 
 export {
     Libp2pBaseRequest,
+    Libp2pCommandRequest,
+    Libp2pCommandResponse,
     IPFSBaseRequest,
     IPFSCreateRequest,
     OrbitDBBaseRequest,

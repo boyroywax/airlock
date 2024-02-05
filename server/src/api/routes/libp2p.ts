@@ -1,8 +1,9 @@
-import express, { Response, Request } from 'express';   
+import express, { Response, Request, response } from 'express';   
 
 import { Libp2pNode, Libp2pNodeConfig, Libp2pNodesManager, createLibp2pManager } from '../../db/libp2p/index.js';
-import { Libp2pBaseRequest } from '../../models/api.js';
-import { INodeActionResponse } from '../../models/node.js';
+import { Libp2pBaseRequest, Libp2pCommandRequest, Libp2pCommandResponse } from '../../models/api.js';
+import { INodeActionResponse, INodeCommandResponse } from '../../models/node.js';
+import { Libp2pNodeCommand } from '../../db/libp2p/commands.js';
 
 const router = express.Router();
 
@@ -288,6 +289,51 @@ router.post('/libp2p/node/stop', async (req: Libp2pBaseRequest, res: Response) =
                 message: `Libp2p ${req.body.id} Node is not started`
             } as INodeActionResponse);
         }
+    }
+    else {
+        res.send(libp2pNodeResponse);
+    }
+});
+
+/**
+ * @openapi
+ * /api/v0/libp2p/node/command:
+ *  post:
+ *   summary: Runs a command on a libp2p node
+ *   tags:
+ *    - libp2p
+ *   requestBody:
+ *    description: Node ID and Command
+ *    required: true
+ *    content:
+ *     application/json:
+ *      schema:
+ *       type: object
+ *       properties:
+ *        id:
+ *         type: string
+ *         example: "abcd123"
+ *        command:
+ *         type: string
+ *         example: "ping"
+ *        args:
+ *         type: array
+ *         items:
+ *          args: string
+ *         example: "[QmXt3Yz8v3Z6]"
+ *   responses:
+ *    200:
+ *     description: The result of the operation
+ *     content:
+ *      application/json:
+ *       schema:
+ *        type: string
+ *     example: /or
+ *  */
+router.post('/libp2p/node/command', async (req: Libp2pCommandRequest, res: Response ) => {
+    const libp2pNodeResponse = activeNode(req.body.id);
+    if (libp2pNodeResponse instanceof Libp2pNode) {
+        res.send(await libp2pNodeResponse.runCommand(req.body.command, req.body.args));
     }
     else {
         res.send(libp2pNodeResponse);

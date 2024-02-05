@@ -162,12 +162,12 @@ class IPFSNode implements INode {
             await this.instance.stop();
             response = {
                 code: 200,
-                message: "IPFS Node Stopped"
+                message: `IPFS Node ${this.id} Stopped`
             }
         } catch (error: any) {
             response = {
                 code: 202,
-                message: "IPFS Node Failed to Stop",
+                message: `IPFS Node ${this.id} Failed to Stop`,
                 error: error
             }
         }
