@@ -253,3 +253,49 @@ router.post('/orbitdb/node/stop', async function(req: OrbitDBBaseRequest, res: R
         res.status(500).send(orbitDbNode);
     }
 });
+
+
+/**
+ * @openapi
+ * /api/v0/orbitdb/node/command:
+ *  post:
+ *   summary: Executes a command on an OrbitDB node
+ *   tags:
+ *    - orbitdb
+ *   requestBody:
+ *    description: Set the node ID and command - open
+ *    required: true
+ *    content:
+ *     application/json:
+ *      schema:
+ *       type: object
+ *       properties:
+ *        id:
+ *         type: string
+ *         example: "abcd123"
+ *        command:
+ *         type: string
+ *         example: "open"
+ *        args:
+ *         type: array
+ *         items:
+ *          type: string
+ *         example: ["/orbitdb/QmXt3Yz8v3Z6"]
+ *   responses:
+ *    200:
+ *     description: The result of the operation
+ *     content:
+ *      application/json:
+ *       schema:
+ *        type: string
+ *     example: /or
+ */
+router.post('/orbitdb/node/command', async function(req: OrbitDBBaseRequest, res: Response) {
+    const orbitDbNode = activeNode(req.body.id);
+    if (orbitDbNode instanceof OrbitDBNode) {
+        res.send(await orbitDbNode.runCommand(req.body.command, req.body.args));
+    }
+    else {
+        res.status(500).send(orbitDbNode);
+    }
+});

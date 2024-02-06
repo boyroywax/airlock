@@ -11,6 +11,7 @@ import {
     INodeCommandPlane,
     INodeCommand,
     INodeCommandResponse,
+    IOpenDBCommandPlane
 } from "./node";
 
 import {
@@ -25,8 +26,10 @@ import {
 import {
     OrbitDBTypes,
     IOrbitDBNodeOptions,
-    IOrbitDBManifest
+    IOrbitDBManifest,
+    IOpenDBOptions
 } from "./orbitdb";
+
 
 import {
     Libp2pBaseRequest,
@@ -37,16 +40,19 @@ import {
 } from "./api";
 
 export {
-    // Nodes and Managers
+    // Network & IPFS Nodes and Managers
     INode,
     INodeActionResponse,
     INodeConfig,
     INodesManager,
     INodesManagerConfig,
     IHeliaNodeOptions,
+    // OrbitDB
     OrbitDBTypes,
     IOrbitDBNodeOptions,
     IOrbitDBManifest,
+    IOpenDBOptions,
+    IOpenDBCommandPlane,
     // API
     Libp2pBaseRequest,
     IPFSBaseRequest,

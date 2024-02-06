@@ -1,4 +1,5 @@
-import { IPFSNode } from "../db/ipfs";
+import { IPFSNode } from "../db/ipfs/index.js";
+import { OrbitDBNode } from "../db/orbitdb/node.js";
 
 enum OrbitDBTypes {
   EventLog = 'events',
@@ -11,6 +12,10 @@ enum OrbitDBTypes {
 interface IOrbitDBOptions {
   databaseType: OrbitDBTypes;
   databaseName: string;
+}
+
+interface IOpenDBOptions extends IOrbitDBOptions {
+  orbitDBWorker: OrbitDBNode;
 }
 
 interface IOrbitDBDIDOptions {
@@ -35,4 +40,5 @@ export {
   IOrbitDBDIDOptions,
   IOrbitDBManifest,
   IOrbitDBNodeOptions,
+  IOpenDBOptions
 }

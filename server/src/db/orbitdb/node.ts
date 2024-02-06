@@ -1,8 +1,9 @@
 import { OrbitDb, createOrbitDB } from "@orbitdb/core";
 
-import { INodeConfig, IOrbitDBNodeOptions, INodeActionResponse, INode } from "../../models/index.js";
+import { INodeConfig, IOrbitDBNodeOptions, INodeActionResponse, INode, INodeCommandResponse } from "../../models/index.js";
 import { createRandomId } from "../../utils/index.js";
 import { IPFSNode } from "../ipfs/node.js";
+import { OrbitDBCommands, OrbitDBNodeCommandPlane } from "./commands.js";
 
 
 const verifyIPFSNode = (ipfsWorker: IPFSNode): IPFSNode['id'] | INodeActionResponse => {
@@ -57,7 +58,11 @@ class OrbitDBNode implements INode {
     public id: string;
     public instance: typeof OrbitDb;
     public ipfsWorkerID: IPFSNode['id'] | INodeActionResponse;
+    public libp2pWorkerID: string | INodeActionResponse;
     public status: INodeActionResponse;
+    public commands?: OrbitDBCommands;
+    private commandPlane: OrbitDBNodeCommandPlane;
+
 
     public constructor({
         id,
@@ -72,6 +77,7 @@ class OrbitDBNode implements INode {
         } as INodeActionResponse;
 
         this.ipfsWorkerID = verifyIPFSNode(options.ipfs);
+        this.libp2pWorkerID = options.ipfs.getLibp2pWorkerID()
 
         let orbitDBInstance: IPFSNode['instance'] | undefined = undefined;
 
@@ -96,6 +102,8 @@ class OrbitDBNode implements INode {
         }
 
         this.instance = orbitDBInstance as typeof OrbitDb;
+
+        this.commandPlane = new OrbitDBNodeCommandPlane(this);
         
         this.status = {
             code: 300,
@@ -109,6 +117,14 @@ class OrbitDBNode implements INode {
 
     public getStatus(): INodeActionResponse {
         return this.status;
+    }
+
+    public getWorkerID(): string {
+        return this.id;
+    }
+
+    public getInstance(): any {
+        return this.instance;
     }
 
     public async start(): Promise<INodeActionResponse> {
@@ -147,12 +163,22 @@ class OrbitDBNode implements INode {
         return response
     }
 
-    public getWorkerID(): string {
-        return this.id;
-    }
+    public async runCommand(command: OrbitDBCommands | string, args: string[]): Promise<INodeCommandResponse> {
+        let response: INodeCommandResponse = {
+            code: 300,
+            message: `Command Executed: ${command} ${args}`
+        }
 
-    public getInstance(): any {
-        return this.instance;
+        try {
+            response = await this.commandPlane.execute({
+                command: command,
+                args: args
+            });
+        }
+        catch (error: any) {
+            response['error'] = error;
+        }
+        return response
     }
 }
 

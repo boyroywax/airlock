@@ -4,9 +4,11 @@ import { Libp2p, ServiceMap } from '@libp2p/interface';
 import { OrbitDB, Database } from '@orbitdb/core';
 
 import { IHeliaNodeOptions } from './helia.js';
-import { IOrbitDBNodeOptions } from './orbitdb.js';
+import { IOrbitDBNodeOptions, IOrbitDBOptions } from './orbitdb.js';
+import { OrbitDBNodeCommands } from '../db/orbitdb/commands.js';
 import { Libp2pCommands, Libp2pNodeCommand } from '../db/libp2p/commands.js';
 import { Libp2pNode } from '../db/index.js';
+import { OpenDBCommands } from '../db/open/commands.js';
 
 enum NodeInstanceTypes {
     LIBP2P = 'libp2p',
@@ -33,7 +35,7 @@ enum NodeCodes {
 */
 interface INodeConfig {
     id: string;
-    options?: Libp2pOptions | IHeliaNodeOptions | IOrbitDBNodeOptions;
+    options?: Libp2pOptions | IHeliaNodeOptions | IOrbitDBNodeOptions | IOrbitDBOptions;
     instance?: Helia | Libp2p<ServiceMap> | typeof OrbitDB | typeof Database;
 }
 
@@ -47,6 +49,7 @@ interface INode {
     getWorkerID(): INode['id'];
     start(): Promise<INodeActionResponse>;
     stop(): Promise<INodeActionResponse>;
+    command?(command: INodeCommand): Promise<INodeCommandResponse>;
 
 }
 
@@ -70,9 +73,15 @@ interface INodeCommandPlane {
     execute: (command: INodeCommand | Libp2pNodeCommand) => Promise<INodeCommandResponse>
 }
 
+interface IOpenDBCommandPlane {
+    db: typeof Database;
+
+    execute: (command: INodeCommand) => Promise<INodeCommandResponse>
+}
+
 interface INodeCommand {
-    command: string | Libp2pCommands;
-    args: any;
+    command: string | Libp2pCommands | OrbitDBNodeCommands | OpenDBCommands;
+    args?: string[];
 }
 
 
@@ -89,5 +98,6 @@ export {
     INodeConfig,
     INodeCommandPlane,
     INodeCommand,
-    INodeCommandResponse
+    INodeCommandResponse,
+    IOpenDBCommandPlane
 }
