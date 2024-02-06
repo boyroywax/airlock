@@ -2,8 +2,6 @@ import { OrbitDB } from '@orbitdb/core';
 
 import { INodesManager, INodeActionResponse } from '../../models/index.js';
 import { OrbitDBNode, OrbitDBNodeConfig } from './node.js';
-import { IOrbitDBDIDOptions } from '../../models/orbitdb.js';
-import { IPFSNode } from '../ipfs/node.js';
 
 
 class OrbitDBNodesManager implements INodesManager {

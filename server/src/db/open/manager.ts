@@ -4,7 +4,6 @@ import { OrbitDBNode, OrbitDBNodeCommands } from '../orbitdb/index.js';
 import { INodesManager, OrbitDBTypes } from '../../models/index.js';
 import { INodeActionResponse, INodeConfig } from '../../models/node.js';
 import { IOpenDBOptions } from '../../models/orbitdb.js';
-import { OpenDBCommands } from './commands.js';
 
 
 
@@ -57,10 +56,10 @@ class OpenDbManager implements INodesManager{
             message: `Database ${config.databaseName} created`
         }
 
-        config.orbitDBWorker.runCommand(
-            OrbitDBNodeCommands.OPEN,
-            [config.databaseName, config.databaseType]
-        ).then((response) => {
+        config.orbitDBWorker.runCommand({
+            command: OrbitDBNodeCommands.OPEN,
+            args: config
+        }).then((response) => {
             this.set(response, true)
             return responseMsg
         });

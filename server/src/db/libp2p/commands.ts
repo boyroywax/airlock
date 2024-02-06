@@ -43,7 +43,7 @@ class Libp2pNodeCommandPlane implements INodeCommandPlane {
         this.nodeWorker = node;
     }
 
-    public async execute(command: Libp2pNodeCommand | INodeCommand ): Promise<INodeCommandResponse> {
+    public async execute(command: Libp2pNodeCommand ): Promise<INodeCommandResponse> {
         let response: INodeCommandResponse = {
             code: 200,
             message: "Command Executed"

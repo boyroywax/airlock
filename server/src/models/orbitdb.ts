@@ -1,5 +1,6 @@
 import { IPFSNode } from "../db/ipfs/index.js";
 import { OrbitDBNode } from "../db/orbitdb/node.js";
+import { INodeConfig } from "./node.js";
 
 enum OrbitDBTypes {
   EventLog = 'events',
@@ -9,7 +10,7 @@ enum OrbitDBTypes {
   MetaData = 'meta'
 }
 
-interface IOrbitDBOptions {
+interface IOrbitDBOptions{
   databaseType: OrbitDBTypes;
   databaseName: string;
 }

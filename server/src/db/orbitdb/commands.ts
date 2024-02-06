@@ -1,9 +1,10 @@
-import { Database } from "@orbitdb/core";
+import { Database, OrbitDB } from "@orbitdb/core";
 
 import { OrbitDBNode } from "./node.js";
 import { INodeCommand, INodeCommandPlane, INodeCommandResponse } from "../../models/index.js";
-import { LogBookNames } from "../../models/logs";
+import { LogBookNames } from "../../models/logs.js";
 import { getLogBook, LogBook } from "../../utils/logBook.js";
+import { IOrbitDBOptions } from "../../models/orbitdb.js";
 
 const logger: LogBook  = getLogBook(LogBookNames.ORBITDB)
 
@@ -12,12 +13,12 @@ enum OrbitDBNodeCommands {
 }
 
 class OrbitDBNodeCommand implements INodeCommand {
-    public command: OrbitDBNodeCommands | string;
-    public args: string[];
+    public command: OrbitDBNodeCommands;
+    public args: IOrbitDBOptions;
 
     public constructor(
-        command: OrbitDBNodeCommands | string,
-        args: string[] = []
+        command: OrbitDBNodeCommands,
+        args: IOrbitDBOptions
     ) {
         this.command = command;
         this.args = args;
@@ -25,15 +26,15 @@ class OrbitDBNodeCommand implements INodeCommand {
 }
 
 class OrbitDBNodeCommandPlane implements INodeCommandPlane {
-    public nodeWorker: OrbitDBNode;
+    public nodeWorker: typeof OrbitDB;
 
     public constructor(
-        node: OrbitDBNode,
+        node: typeof OrbitDB,
     ) {
         this.nodeWorker = node;
     }
 
-    public async execute(command: OrbitDBNodeCommand | INodeCommand ): Promise<INodeCommandResponse> {
+    public async execute(command: OrbitDBNodeCommand): Promise<INodeCommandResponse> {
         let response: INodeCommandResponse = {
             code: 300,
             message: `Command Executed: ${command.command} ${command.args}`
@@ -41,7 +42,7 @@ class OrbitDBNodeCommandPlane implements INodeCommandPlane {
 
         switch (command.command as OrbitDBNodeCommands) {
             case OrbitDBNodeCommands.OPEN:
-                response = await this.openDatabase(command.args?.[0] as string)
+                response = await this.openDatabase(command)
                 break;
             default:
                 response = {
@@ -53,18 +54,21 @@ class OrbitDBNodeCommandPlane implements INodeCommandPlane {
         return response
     }
 
-    private async openDatabase(name: string): Promise<typeof Database | INodeCommandResponse> {
+    private async openDatabase(command: OrbitDBNodeCommand): Promise<typeof Database | INodeCommandResponse> {
+        const name: string = command.args.databaseName
+        const type: string = command.args.databaseType
+
         let response: INodeCommandResponse = {
             code: 300,
-            message: `Database ${name} Opened`
+            message: `Database ${command.args} Opened`
         }
 
         try {
-            return await this.nodeWorker.instance.open(name)
+            return await this.nodeWorker.instance.open(name, { type: type})
         } catch (error: any) {
             response = {
                 code: 302,
-                message: `Database ${name} Failed to Open`,
+                message: `Database ${name} of type ${type} Failed to Open`,
                 error: error
             }
         }

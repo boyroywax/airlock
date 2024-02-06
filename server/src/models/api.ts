@@ -46,11 +46,23 @@ interface OrbitDBBaseRequest extends Request {
     }
 }
 
-interface OrbitDBCreateRequest extends Request {
+interface OrbitDBNodeCreateRequest extends Request {
     body: {
         id: string;
         options: {
             ipfsWorkerId: string;
+        }
+    }
+}
+
+interface OrbitDBCreateRequest extends Request {
+    body: {
+        id: string;
+        command: string;
+        args: {
+            orbitDbWorkerId: string;
+            databaseName: string;
+            databaseType: string;
         }
     }
 }
@@ -62,5 +74,6 @@ export {
     IPFSBaseRequest,
     IPFSCreateRequest,
     OrbitDBBaseRequest,
-    OrbitDBCreateRequest
+    OrbitDBCreateRequest,
+    OrbitDBNodeCreateRequest
 }

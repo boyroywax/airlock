@@ -1,9 +1,11 @@
 import express, { Request, Response, } from 'express';
 
-import { OrbitDBNode, OrbitDBNodeConfig, OrbitDBNodesManager } from '../../db/orbitdb/index.js';
-import { OrbitDBTypes, OrbitDBBaseRequest, OrbitDBCreateRequest, IOrbitDBNodeOptions, INodeActionResponse } from '../../models/index.js';
+import { OrbitDBNode, OrbitDBNodeCommands, OrbitDBNodeConfig, OrbitDBNodesManager } from '../../db/orbitdb/index.js';
+import { OrbitDBTypes, OrbitDBBaseRequest, OrbitDBCreateRequest, IOrbitDBNodeOptions, INodeActionResponse, IOpenDBOptions } from '../../models/index.js';
 import { ipfsNodesManager } from './ipfs.js';
 import { IPFSNode } from '../../db/ipfs/node.js';
+import { OrbitDBNodeCreateRequest } from '../../models/api.js';
+import { OrbitDBNodeCommand } from '../../db/orbitdb/commands.js';
 
 const router = express.Router();
 
@@ -102,7 +104,7 @@ const createNode = (config: OrbitDBNodeConfig): OrbitDBNode | INodeActionRespons
  *        type: string
  *     example: /or
  */
-router.post('/orbitdb/create', async function(req: OrbitDBCreateRequest, res: Response) {
+router.post('/orbitdb/create', async function(req: OrbitDBNodeCreateRequest, res: Response) {
     const id: OrbitDBNode['id'] = req.body.id;
     const options = req.body.options;
     const ipfsWorker: IPFSNode | INodeActionResponse = ipfsNodesManager.get(options.ipfsWorkerId);
@@ -277,10 +279,14 @@ router.post('/orbitdb/node/stop', async function(req: OrbitDBBaseRequest, res: R
  *         type: string
  *         example: "open"
  *        args:
- *         type: array
- *         items:
- *          type: string
- *         example: ["/orbitdb/QmXt3Yz8v3Z6"]
+ *         type: object
+ *         properties:
+ *          databaseName:
+ *           type: string
+ *           example: "ab1-orbitdb-ipfs-trnkt-xyz"
+ *          databaseType:
+ *           type: string
+ *           example: "events"
  *   responses:
  *    200:
  *     description: The result of the operation
@@ -290,10 +296,16 @@ router.post('/orbitdb/node/stop', async function(req: OrbitDBBaseRequest, res: R
  *        type: string
  *     example: /or
  */
-router.post('/orbitdb/node/command', async function(req: OrbitDBBaseRequest, res: Response) {
+router.post('/orbitdb/node/command', async function(req: OrbitDBCreateRequest, res: Response) {
     const orbitDbNode = activeNode(req.body.id);
     if (orbitDbNode instanceof OrbitDBNode) {
-        res.send(await orbitDbNode.runCommand(req.body.command, req.body.args));
+        res.send(await orbitDbNode.runCommand({ 
+            command: req.body.command as OrbitDBNodeCommands,
+            args: {
+                databaseName: req.body.args.databaseName,
+                databaseType: req.body.args.databaseType,
+            } as OrbitDBNodeCommand['args']
+        }));
     }
     else {
         res.status(500).send(orbitDbNode);

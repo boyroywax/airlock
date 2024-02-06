@@ -5,23 +5,56 @@ import { OrbitDB, Database } from '@orbitdb/core';
 
 import { IHeliaNodeOptions } from './helia.js';
 import { IOrbitDBNodeOptions, IOrbitDBOptions } from './orbitdb.js';
-import { OrbitDBNodeCommands } from '../db/orbitdb/commands.js';
+import { OrbitDBNodeCommand, OrbitDBNodeCommands } from '../db/orbitdb/commands.js';
 import { Libp2pCommands, Libp2pNodeCommand } from '../db/libp2p/commands.js';
-import { Libp2pNode } from '../db/index.js';
+import { IPFSNode, Libp2pNode, OrbitDBNode } from '../db/index.js';
 import { OpenDBCommands } from '../db/open/commands.js';
 
+/**
+ * @constant NodeInstanceTypes
+ * @description The types of node instances
+ * @summary The types of node instances
+ * @readonly
+ * @enum {string}
+ * @property {string} DB - The node instance is a database
+ * @property {string} LIBP2P - The node instance is a libp2p node
+ * @property {string} IPFS - The node instance is an IPFS node
+ * @property {string} ORBITDB - The node instance is an OrbitDB node
+ */ 
 enum NodeInstanceTypes {
+    OPEN_DB = 'db',
     LIBP2P = 'libp2p',
     IPFS = 'ipfs',
     ORBITDB = 'orbitdb'
 }
 
+/**
+ * @constant NodeInstanceStatus
+ * @description The status of node instances
+ * @summary The status of node instances
+ * @enum {string}
+ * @readonly
+ * @property {string} STARTED - The node instance is started
+ * @property {string} STOPPED - The node instance is stopped
+ * @property {string} ERROR - The node instance has an error
+ */
 enum NodeInstanceStatus {
     STARTED = 'started',
     STOPPED = 'stopped',
     ERROR = 'error'
 }
 
+/**
+ * @constant NodeCodes
+ * @description The response codes for node instances
+ * @summary The response codes for node instances
+ * @enum {number}
+ * @readonly
+ * @property {number} LIBP2P - The response code for libp2p nodes
+ * @property {number} IPFS - The response code for IPFS nodes
+ * @property {number} ORBITDB - The response code for OrbitDB nodes
+ * @property {number} OPEN_DB - The response code for open databases
+ */
 enum NodeCodes {
     LIBP2P = 100,
     IPFS = 200,
@@ -29,16 +62,34 @@ enum NodeCodes {
     OPEN_DB = 400
 }   
 
-
-/*
-    Node Instances are the base class for all node instances (IPFS, OrbitDB, Libp2p, etc.)
-*/
+/**
+ * @interface INodeConfig
+ * @description The configuration for a node instance
+ * @summary The configuration for a node instance
+ * @property {string} id - The System Worker ID of the node
+ * @property {Libp2pOptions | IHeliaNodeOptions | IOrbitDBNodeOptions | IOrbitDBOptions} [options] - The options for the node instance
+ * @property {Helia | Libp2p<ServiceMap> | typeof OrbitDB | typeof Database} [instance] - The instance of the node
+ */
 interface INodeConfig {
     id: string;
     options?: Libp2pOptions | IHeliaNodeOptions | IOrbitDBNodeOptions | IOrbitDBOptions;
     instance?: Helia | Libp2p<ServiceMap> | typeof OrbitDB | typeof Database;
 }
 
+/**
+ * @interface INode
+ * @description The base class for all node instances (IPFS, OrbitDB, Libp2p, etc.)
+ * @summary The base class for all node instances
+ * @property {string} id - The System Worker ID of the node
+ * @property {Helia | Libp2p<ServiceMap> | typeof OrbitDB | typeof Database} [instance] - The instance of the node
+ * @method getInstance - Returns the instance of the node
+ * @method getPeerID - Returns the Peer ID of the node
+ * @method getStatus - Returns the status of the node
+ * @method getWorkerID - Returns the System Worker ID of the node
+ * @method start - Starts the node
+ * @method stop - Stops the node
+ * @method command - Sends a command to the node
+ */
 interface INode {
     id: string;
     instance?:  Helia | Libp2p<ServiceMap> | typeof OrbitDB | typeof Database;
@@ -68,9 +119,9 @@ interface INodeActionResponse {
 }
 
 interface INodeCommandPlane {
-    nodeWorker: INode | Libp2pNode;
+    nodeWorker: INode | IPFSNode | OrbitDBNode | Libp2pNode;
 
-    execute: (command: INodeCommand | Libp2pNodeCommand) => Promise<INodeCommandResponse>
+    execute: (command: INodeCommand | any) => Promise<INodeCommandResponse>
 }
 
 interface IOpenDBCommandPlane {
@@ -79,9 +130,16 @@ interface IOpenDBCommandPlane {
     execute: (command: INodeCommand) => Promise<INodeCommandResponse>
 }
 
+/**
+ * @interface INodeCommand
+ * @description The command to send to a node instance
+ * @summary The command to send to a node instance
+ * @property {Libp2pCommands | OrbitDBNodeCommands | OpenDBCommands} command - The command to send
+ * @property {IOrbitDBOptions | any} args - The arguments for the command
+ */
 interface INodeCommand {
-    command: string | Libp2pCommands | OrbitDBNodeCommands | OpenDBCommands;
-    args?: string[];
+    command: string | Libp2pCommands | OrbitDBNodeCommands | OpenDBCommands | any;
+    args: IOrbitDBOptions | string[];
 }
 
 

@@ -3,7 +3,7 @@ import { OrbitDb, createOrbitDB } from "@orbitdb/core";
 import { INodeConfig, IOrbitDBNodeOptions, INodeActionResponse, INode, INodeCommandResponse } from "../../models/index.js";
 import { createRandomId } from "../../utils/index.js";
 import { IPFSNode } from "../ipfs/node.js";
-import { OrbitDBCommands, OrbitDBNodeCommandPlane } from "./commands.js";
+import { OrbitDBNodeCommands, OrbitDBNodeCommand, OrbitDBNodeCommandPlane } from "./commands.js";
 
 
 const verifyIPFSNode = (ipfsWorker: IPFSNode): IPFSNode['id'] | INodeActionResponse => {
@@ -60,7 +60,7 @@ class OrbitDBNode implements INode {
     public ipfsWorkerID: IPFSNode['id'] | INodeActionResponse;
     public libp2pWorkerID: string | INodeActionResponse;
     public status: INodeActionResponse;
-    public commands?: OrbitDBCommands;
+    public commands?: OrbitDBNodeCommands;
     private commandPlane: OrbitDBNodeCommandPlane;
 
 
@@ -103,7 +103,7 @@ class OrbitDBNode implements INode {
 
         this.instance = orbitDBInstance as typeof OrbitDb;
 
-        this.commandPlane = new OrbitDBNodeCommandPlane(this);
+        this.commandPlane = new OrbitDBNodeCommandPlane(this.getInstance());
         
         this.status = {
             code: 300,
@@ -163,17 +163,16 @@ class OrbitDBNode implements INode {
         return response
     }
 
-    public async runCommand(command: OrbitDBCommands | string, args: string[]): Promise<INodeCommandResponse> {
+    public async runCommand(command: OrbitDBNodeCommand): Promise<INodeCommandResponse> {
         let response: INodeCommandResponse = {
             code: 300,
-            message: `Command Executed: ${command} ${args}`
+            message: `Command Executed: ${command}`
         }
 
         try {
-            response = await this.commandPlane.execute({
-                command: command,
-                args: args
-            });
+            response = await this.commandPlane.execute(
+                command
+            );
         }
         catch (error: any) {
             response['error'] = error;
