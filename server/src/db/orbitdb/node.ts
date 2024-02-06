@@ -1,4 +1,4 @@
-import { OrbitDb, createOrbitDB } from "@orbitdb/core";
+import { OrbitDb, createOrbitDB, Database } from "@orbitdb/core";
 
 import { INodeConfig, IOrbitDBNodeOptions, INodeActionResponse, INode, INodeCommandResponse } from "../../models/index.js";
 import { createRandomId } from "../../utils/index.js";
@@ -163,7 +163,7 @@ class OrbitDBNode implements INode {
         return response
     }
 
-    public async runCommand(command: OrbitDBNodeCommand): Promise<INodeCommandResponse> {
+    public async runCommand(command: OrbitDBNodeCommand): Promise<INodeCommandResponse | typeof Database> {
         let response: INodeCommandResponse = {
             code: 300,
             message: `Command Executed: ${command}`

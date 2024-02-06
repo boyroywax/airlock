@@ -1,19 +1,19 @@
-import { INodeActionResponse } from "../../models";
-import { OpenDBCommandPlane, OpenDBCommands } from "./commands";
-import { INode, INodeCommand, INodeCommandResponse, INodeConfig } from "../../models/node";
-import { createRandomId } from "../../utils";
+import { INodeActionResponse } from "../../models/index.js";
+import { OpenDBCommandPlane, OpenDBCommands } from "./commands.js";
+import { INode, INodeCommand, INodeCommandResponse, INodeConfig } from "../../models/node.js";
+import { createRandomId } from "../../utils/index.js";
 import { Database } from "@orbitdb/core";
-import { IOrbitDBOptions } from "../../models/orbitdb";
+import { IOpenDBOptions, IOrbitDBOptions } from "../../models/orbitdb.js";
 
 class OpenDBConfig implements INodeConfig {
     public id: string;
-    public options?: IOrbitDBOptions;
+    public options: IOpenDBOptions;
     public instance?: typeof Database;
 
     public constructor(
         id: string = createRandomId(),
         instance: typeof Database,
-        options?: IOrbitDBOptions,
+        options: IOpenDBOptions,
 
     ) {
         this.id = id;
@@ -27,20 +27,23 @@ class OpenDB implements INode {
     public id: string;
     public instance: typeof Database;
     public status: INodeActionResponse;
+    public options: IOpenDBOptions;
     public commands?: OpenDBCommands;
     private commandPlane: OpenDBCommandPlane;
 
     public constructor({
         id,
+        options,
         instance
     }: OpenDBConfig) {
         this.id = id;
+        this.options = options;
         this.instance = instance;
         this.status = {
             code: 100,
             message: "OpenDB Node Created"
         }
-        this.commandPlane = new OpenDBCommandPlane(this);
+        this.commandPlane = new OpenDBCommandPlane(this.instance);
     }
 
     public getInstance(): typeof OpenDB {
@@ -48,7 +51,7 @@ class OpenDB implements INode {
     }
 
     public getPeerID(): string {
-        return this.instance?.address.root;
+        return this.instance.address.toString();
     }
 
     public getStatus(): INodeActionResponse {

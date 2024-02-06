@@ -1,74 +1,98 @@
 import { Database } from '@orbitdb/core';
 
-import { OrbitDBNode, OrbitDBNodeCommands } from '../orbitdb/index.js';
+import { OrbitDBNode, OrbitDBNodeCommands, OrbitDBNodesManager } from '../orbitdb/index.js';
 import { INodesManager, OrbitDBTypes } from '../../models/index.js';
-import { INodeActionResponse, INodeConfig } from '../../models/node.js';
+import { INodeActionResponse, INodeConfig, INodeCommandResponse } from '../../models/node.js';
 import { IOpenDBOptions } from '../../models/orbitdb.js';
+import { OpenDB, OpenDBConfig } from './node.js';
 
 
 
 class OpenDbManager implements INodesManager{
-    public instances: Map<string, typeof Database> = new Map<string, typeof Database>()
+    private orbitDbManager: OrbitDBNodesManager;
+    public instances: Map<string, OpenDB> = new Map<string, OpenDB>()
 
-    public constructor() {
+    public constructor(orbitDbNodeManager: OrbitDBNodesManager) {
+        this.orbitDbManager = orbitDbNodeManager;
         console.log('OpenDbManager created')
     }
 
     private set(
-        db: typeof Database,
+        db: OpenDB,
         isNewDb: boolean = false
     ) {
         let returnMsg: INodeActionResponse = {
             code: 300,
-            message: `Database ${db.address.root} added`
+            message: `Database ${db.id} added`
         }
 
-        if (this.instances.has(db.address.root) && !isNewDb) {
+        if (this.instances.has(db.id) && !isNewDb) {
             returnMsg = {
                 code: 300,
-                message: `Database ${db.address.root} updated`
+                message: `Database ${db.id} updated`
             }
         }
-        else if (this.instances.has(db.address.root) && isNewDb) {
+        else if (this.instances.has(db.id) && isNewDb) {
             return {
                 code: 302,
-                message: `Database ${db.address.root} already exists`,
-                error: new Error(`Database ${db.address.root} not added`)
+                message: `Database ${db.id} already exists`,
+                error: new Error(`Database ${db.id} not added`)
             }
         }
-        else if (!this.instances.has(db.address.root) && isNewDb) {
+        else if (!this.instances.has(db.id) && isNewDb) {
             returnMsg = {
                 code: 300,
-                message: `Database ${db.address.root} created and added`
+                message: `Database ${db.id} created and added`
             }
         }
 
-        this.instances.set(db.address.root, db)
+        this.instances.set(db.id, db)
         return returnMsg
     }
+
+    private getOrbitDbNode(
+        id: string
+    ): OrbitDBNode {
+        if (this.orbitDbManager.instances.has(id)) {
+            return this.orbitDbManager.instances.get(id) as OrbitDBNode
+        }
+        else {
+            throw new Error(`OrbitDB Node ${id} not found`)
+        }
+    }
+
     
 
     public create(
-        config: IOpenDBOptions
+        config: OpenDBConfig
     ): INodeActionResponse {
         let responseMsg: INodeActionResponse = {
             code: 300,
-            message: `Database ${config.databaseName} created`
+            message: `Database ${config.id} created`
         }
+        const activeOrbitdbNode = this.getOrbitDbNode(config.options.orbitDbWorkerId)
 
-        config.orbitDBWorker.runCommand({
+        activeOrbitdbNode.runCommand({
             command: OrbitDBNodeCommands.OPEN,
-            args: config
+            args: config.options as IOpenDBOptions
         }).then((response) => {
-            this.set(response, true)
-            return responseMsg
+            try {
+                responseMsg = this.set(new OpenDB({
+                    id: config.id,
+                    options: config.options,
+                    instance: response
+                }), true)
+            }
+            catch (error: any) {
+                responseMsg = {
+                    code: 302,
+                    message: `Database ${config.id} failed to create`,
+                    error: error
+                }
+            }
         });
 
-        return {
-            code: 302,
-            message: `Database ${config.databaseName} failed to create`,
-            error: new Error(`Database ${config.databaseName} not created`)
-        }
+        return responseMsg
     }
 
     public add(
@@ -80,7 +104,7 @@ class OpenDbManager implements INodesManager{
     public list(): string[] {
         let dbs: string[] = []
         this.instances.forEach((db) => {
-            dbs.push(db.address.root)
+            dbs.push(db.instance.id)
         })
         return dbs
     }

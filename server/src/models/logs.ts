@@ -6,7 +6,7 @@ enum LogBooks {
     IPFS = 'ipfs',
     LIBP2P = 'libp2p',
     ORBITDB = 'orbitdb',
-}
+} 
 
 interface INodeLogEntry {
     codes?: number[];
@@ -28,8 +28,18 @@ interface INodeLogBook {
     getLastEntries: (count: number) => Map<number, INodeLogEntry>;
 }
 
+interface ILogBooksManager {
+    books: Map<string, INodeLogBook>;
+
+    create: (name: LogBooks) => void;
+    get: (name: LogBooks) => INodeLogBook;
+    delete: (name: LogBooks) => void;
+    clear: () => void;
+}
+
 export {
     INodeLogEntry,
     INodeLogBook,
-    LogBooks as LogBookNames
+    LogBooks as LogBookNames,
+    ILogBooksManager
 }

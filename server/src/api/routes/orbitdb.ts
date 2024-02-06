@@ -6,10 +6,13 @@ import { ipfsNodesManager } from './ipfs.js';
 import { IPFSNode } from '../../db/ipfs/node.js';
 import { OrbitDBNodeCreateRequest } from '../../models/api.js';
 import { OrbitDBNodeCommand } from '../../db/orbitdb/commands.js';
+import { OpenDbManager } from '../../db/open/manager.js';
+import { OpenDBConfig } from '../../db/open/node.js';
 
 const router = express.Router();
 
 const orbitDbNodesManager = new OrbitDBNodesManager();
+const openDbManager = new OpenDbManager(orbitDbNodesManager);
 
 /**
  * @constant activeNode
@@ -214,11 +217,6 @@ router.post('/orbitdb/node/start', async function(req: OrbitDBBaseRequest, res: 
     }
 });
 
-export {
-    router as orbitdbRouter,
-    orbitDbNodesManager
-}
-
 /**
  * @openapi
  * /api/v0/orbitdb/node/stop:
@@ -259,7 +257,7 @@ router.post('/orbitdb/node/stop', async function(req: OrbitDBBaseRequest, res: R
 
 /**
  * @openapi
- * /api/v0/orbitdb/node/command:
+ * /api/v0/orbitdb/node/open:
  *  post:
  *   summary: Executes a command on an OrbitDB node
  *   tags:
@@ -281,6 +279,9 @@ router.post('/orbitdb/node/stop', async function(req: OrbitDBBaseRequest, res: R
  *        args:
  *         type: object
  *         properties:
+ *          orbitDbWorkerId:
+ *           type: string
+ *           example: "abcd123"
  *          databaseName:
  *           type: string
  *           example: "ab1-orbitdb-ipfs-trnkt-xyz"
@@ -296,18 +297,30 @@ router.post('/orbitdb/node/stop', async function(req: OrbitDBBaseRequest, res: R
  *        type: string
  *     example: /or
  */
-router.post('/orbitdb/node/command', async function(req: OrbitDBCreateRequest, res: Response) {
-    const orbitDbNode = activeNode(req.body.id);
-    if (orbitDbNode instanceof OrbitDBNode) {
-        res.send(await orbitDbNode.runCommand({ 
-            command: req.body.command as OrbitDBNodeCommands,
-            args: {
-                databaseName: req.body.args.databaseName,
-                databaseType: req.body.args.databaseType,
-            } as OrbitDBNodeCommand['args']
-        }));
-    }
-    else {
-        res.status(500).send(orbitDbNode);
-    }
+router.post('/orbitdb/node/open', async function(req: OrbitDBCreateRequest, res: Response) {
+    const openDbConfig = {
+        id: req.body.id,
+        options: req.body.args as IOpenDBOptions
+    } as OpenDBConfig;
+    return openDbManager.create(openDbConfig);
+
+
+
+    // if (orbitDbNode instanceof OrbitDBNode) {
+    //     res.send(await orbitDbNode.runCommand({ 
+    //         command: req.body.command as OrbitDBNodeCommands,
+    //         args: {
+    //             databaseName: req.body.args.databaseName,
+    //             databaseType: req.body.args.databaseType,
+    //         } as OrbitDBNodeCommand['args']
+    //     }));
+    // }
+    // else {
+    //     res.status(500).send(orbitDbNode);
+    // }
 });
+
+export {
+    router as orbitdbRouter,
+    orbitDbNodesManager
+}

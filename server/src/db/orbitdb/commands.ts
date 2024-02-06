@@ -34,7 +34,7 @@ class OrbitDBNodeCommandPlane implements INodeCommandPlane {
         this.nodeWorker = node;
     }
 
-    public async execute(command: OrbitDBNodeCommand): Promise<INodeCommandResponse> {
+    public async execute(command: OrbitDBNodeCommand): Promise<INodeCommandResponse | typeof Database> {
         let response: INodeCommandResponse = {
             code: 300,
             message: `Command Executed: ${command.command} ${command.args}`
@@ -64,7 +64,7 @@ class OrbitDBNodeCommandPlane implements INodeCommandPlane {
         }
 
         try {
-            return await this.nodeWorker.instance.open(name, { type: type})
+            return await this.nodeWorker.instance.open(name, { type: type })
         } catch (error: any) {
             response = {
                 code: 302,
