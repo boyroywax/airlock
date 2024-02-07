@@ -1,6 +1,4 @@
-import { Libp2pNodeCommandActions } from '../libp2p/baseREWORK.js';
-import { IBaseNodeId, BaseNodeId } from './node.js';
-import { IBaseNodeResponse, BaseNodeResponse } from './responses.js';
+import { BaseNodeResponse } from './responses.js';
 
 
 interface IBaseNodeCommandActions extends Object{
@@ -30,12 +28,12 @@ class BaseNodeCommandOptions implements IBaseNodeCommandOptions {
 
     public constructor(
         action: string,
-        args: string[] = [],
-        kwargs: {} = {}
+        args?: string[],
+        kwargs?: {}
     ) {
         this.action = action;
-        this.args = args;
-        this.kwargs = kwargs;
+        this.args = args ? args : [];
+        this.kwargs = kwargs ? kwargs : {};
     }
 }
 
@@ -73,9 +71,10 @@ class BaseNodeCommandPlane implements IBaseNodeCommandPlane {
     public commands: Map<string, BaseNodeCommand>;
 
     public constructor(
-        availableCommands: BaseNodeCommandActions
+        availableCommands?: BaseNodeCommandActions
     ) {
-        this.commands = this.initCommands(availableCommands);
+        const commands = availableCommands ? availableCommands : new BaseNodeCommandActions();
+        this.commands = this.initCommands(commands);
     }
 
     private initCommands(

@@ -1,5 +1,17 @@
-import { IBaseNodeCommandActions, BaseNodeCommandPlane, BaseNodeCommandActions } from "./commands.js";
-import { IBaseNode, BaseNode, IBaseNodeId, IBaseNodeWorker, BaseNodeStatuses, BaseNodeStatus, BaseNodeId } from "./node.js";
+import {
+    IBaseNodeCommandActions,
+    BaseNodeCommandActions
+} from "./commands.js";
+import {
+    IBaseNode,
+    BaseNode,
+    IBaseNodeId,
+    IBaseNodeWorker,
+    BaseNodeStatuses,
+    BaseNodeStatus,
+    BaseNodeId,
+    BaseNodeWorker
+} from "./node.js";
 
 /**
  * @constant NodeInstanceTypes
@@ -19,44 +31,93 @@ enum NodeInstanceTypes {
     ORBITDB = 'orbitdb'
 }
 
-interface IBaseNodeCreateOptions<T> {
-    id: IBaseNodeId;
-    type: NodeInstanceTypes;
-    worker: IBaseNodeWorker<T>;
-    commands: IBaseNodeCommandActions;
-    params?: string[];
+interface IBaseNodeType<T> {
+    type?: T | NodeInstanceTypes;
 }
 
-class BaseNodeCreateOptions<T> implements IBaseNodeCreateOptions<T> {
-    public id: IBaseNodeId;
-    public type: NodeInstanceTypes;
-    public worker: IBaseNodeWorker<T>;
-    public commands: IBaseNodeCommandActions;
+class BaseNodeInstanceType<T>
+    implements IBaseNodeType<T>
+{
+    public type?: T | NodeInstanceTypes;
+
+    public constructor(type?: T | NodeInstanceTypes) {
+        this.type = type;
+    }
+}
+
+interface IBaseNodeCreateOptions<T, U> {
+    id: IBaseNodeId;
+    type: IBaseNodeType<T>;
+    worker: IBaseNodeWorker<T, U>;
+    commands: IBaseNodeCommandActions;
+    params: string[];
+}
+
+class BaseNodeCreateOptions<T, U>
+    implements IBaseNodeCreateOptions<T, U>
+{
+    public id: BaseNodeId;
+    public type: BaseNodeInstanceType<T>;
+    public worker: BaseNodeWorker<T, U>;
+    public commands: BaseNodeCommandActions;
     public params: string[];
 
     public constructor(
         id: IBaseNodeId,
-        type: NodeInstanceTypes,
-        worker: IBaseNodeWorker<T>,
-        commands: IBaseNodeCommandActions = new BaseNodeCommandActions(),
-        params: string[] = []
+        type?: BaseNodeInstanceType<T>,
+        worker?: BaseNodeWorker<T, U>,
+        commands?: BaseNodeCommandActions,
+        params?: string[]
     ) {
         this.id = id;
-        this.type = type;
-        this.worker = worker;
-        this.commands = commands;
-        this.params = params;
+        this.type = type ? type: new BaseNodeInstanceType<T>();
+        this.worker = worker ? worker : new BaseNodeWorker<T, U>();
+        this.commands = commands ? commands : new BaseNodeCommandActions();
+        this.params = params ? params : [];
     }
 }
 
-interface IBaseNodesManager<T> {
-    nodes: Map<BaseNodeId, IBaseNode<T>>;
+interface IBaseNodeManagerOptions<T, U> {
+    collection: IBaseNodeCreateOptions<T, U>[];
 
-    create(options: IBaseNodeCreateOptions<T>): void;
-    get(id: IBaseNodeId): IBaseNode<T>;
+    add(options: IBaseNodeCreateOptions<T, U>): void;
+    remove(id: IBaseNodeId): void;
+    list(): IBaseNodeCreateOptions<T, U>[];
+}
+
+class BaseNodeManagerOptions<T, U>
+    implements IBaseNodeManagerOptions<T, U>
+{
+    public collection: BaseNodeCreateOptions<T, U>[];
+
+    public constructor(options: BaseNodeCreateOptions<T, U>[]) {
+        this.collection = options;
+    }
+
+    public add(options: BaseNodeCreateOptions<T, U>): void {
+        this.collection.push(options);
+    }
+
+    public remove(id: IBaseNodeId): void {
+        this.collection = this.collection.filter((option) => option.id !== id);
+    }
+
+    public list(): BaseNodeCreateOptions<T, U>[] {
+        return this.collection;
+    }
+}
+
+
+interface IBaseNodesManager<T, U> {
+    nodes: Map<BaseNodeId, IBaseNode<T, U>>;
+    options: IBaseNodeManagerOptions<T, U>;
+
+    create(options: IBaseNodeCreateOptions<T, U>): void;
+    get(id: IBaseNodeId): IBaseNode<T, U>;
     list(): IBaseNodeId[];
     delete(id: IBaseNodeId): void;
 }
+
 
 /**
  * @class BaseNodesManager
@@ -64,17 +125,30 @@ interface IBaseNodesManager<T> {
  * @summary The manager for base nodes
  * @implements IBaseNodesManager
  * @template T - The type of the worker
+ * @template U - The options type for the worker
  * 
  */
-class BaseNodesManager<T> implements IBaseNodesManager<T> {
-    public nodes: Map<BaseNodeId, BaseNode<T>>;
+class BaseNodesManager<T, U>
+    implements IBaseNodesManager<T, U>
+{
+    public nodes: Map<BaseNodeId, BaseNode<T, U>>;
+    public options: BaseNodeManagerOptions<T, U>;
 
-    public constructor() {
-        this.nodes = new Map();
+    public constructor({
+        nodes,
+        options
+    }: {
+        nodes?: Map<BaseNodeId, BaseNode<T, U>>,
+        options?: BaseNodeManagerOptions<T, U>
+    }) {
+        this.nodes = nodes ? nodes : new Map<BaseNodeId, BaseNode<T, U>>();
+        this.options = new BaseNodeManagerOptions<T, U>(options ? options.collection : []);
     }
 
-    public create(options: BaseNodeCreateOptions<T>): void {
-        const node = new BaseNode<T>(
+    public create(options: BaseNodeCreateOptions<T, U>): void {
+        this.options.add(options);
+
+        const node = new BaseNode<T, U>(
             options.id,
             options.worker,
             {
@@ -83,11 +157,11 @@ class BaseNodesManager<T> implements IBaseNodesManager<T> {
             } as BaseNodeStatus,
             options.commands,
         );
-        this.nodes.set(options.id, node);
+        this.nodes.set(node.id, node);
     }
 
-    public get(id: IBaseNodeId): BaseNode<T> {
-        const activeNode: BaseNode<T> | undefined = this.nodes.get(id);
+    public get(id: BaseNodeId): BaseNode<T, U> {
+        const activeNode: BaseNode<T, U> | undefined = this.nodes.get(id);
 
         if (activeNode) {
             return activeNode;
@@ -97,11 +171,11 @@ class BaseNodesManager<T> implements IBaseNodesManager<T> {
         }
     }
 
-    public list(): IBaseNodeId[] {
+    public list(): BaseNodeId[] {
         return Array.from(this.nodes.keys());
     }
 
-    public delete(id: IBaseNodeId): void {
+    public delete(id: BaseNodeId): void {
         this.nodes.delete(id);
     }
 }
@@ -112,7 +186,9 @@ export {
     IBaseNodesManager,
     BaseNodeCreateOptions,
     IBaseNodeCreateOptions,
-    NodeInstanceTypes
+    NodeInstanceTypes,
+    IBaseNodeManagerOptions,
+    BaseNodeManagerOptions,
 }
 
 

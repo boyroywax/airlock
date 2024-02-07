@@ -1,5 +1,11 @@
-import { IBaseNodeCommandPlane, BaseNodeCommandPlane, BaseNodeCommandActions } from "./commands.js";
-import { createRandomId } from "../../utils/index.js";
+import {
+    IBaseNodeCommandPlane,
+    BaseNodeCommandPlane,
+    BaseNodeCommandActions
+} from "./commands.js";
+import {
+    createRandomId
+} from "../../utils/index.js";
 
 
 interface IBaseNodeId {
@@ -14,15 +20,28 @@ class BaseNodeId implements IBaseNodeId {
     }
 }
 
-interface IBaseNodeWorker<T> {
-    worker: T;
+interface IBaseNodeWorker<T, U> {
+    worker?: T;
+
+    createWorker: (options?: U) => void;
 }
 
-class BaseNodeWorker<T> implements IBaseNodeWorker<T> {
-    public worker: T;
+class BaseNodeWorker<T, U>
+    implements IBaseNodeWorker<T, U>
+{
+    public worker?: T;
 
-    public constructor(worker: T) {
-        this.worker = worker
+    public constructor(worker?: T, options?: U) {
+        if (!worker) {
+            this.createWorker(options);
+        }
+        else {
+            this.worker = worker;
+        }
+    }
+
+    createWorker = async (options?: U): Promise<void> => {
+        this.worker = {} as T;
     }
 }
 
@@ -41,7 +60,9 @@ interface IBaseNodeStatus {
     meta?: any;
 }
 
-class BaseNodeStatus implements IBaseNodeStatus {
+class BaseNodeStatus
+    implements IBaseNodeStatus
+{
     public status: BaseNodeStatuses;
     public message: string;
     public error?: Error;
@@ -60,9 +81,9 @@ class BaseNodeStatus implements IBaseNodeStatus {
     }
 }
 
-interface IBaseNode<T> {
+interface IBaseNode<T, U=null> {
     id: IBaseNodeId;
-    worker: IBaseNodeWorker<T>;
+    worker: IBaseNodeWorker<T, U>;
     status: IBaseNodeStatus;
     commands: IBaseNodeCommandPlane;
 }
@@ -73,22 +94,24 @@ interface IBaseNode<T> {
  * @description The base class for all node instances (IPFS, OrbitDB, Libp2p, etc.)
  * @summary The base class for all node instances
  * @property {IBaseNodeId} id - The System Worker ID of the node
- * @property {IBaseNodeWorker<T>} worker - The worker for the node instance
+ * @property {IBaseNodeWorker<T, U=null>} worker - The worker for the node instance
  * @property {IBaseNodeStatus} status - The status of the node instance
  * @property {IBaseNodeCommandPlane} commands - The command plane for the node instance
  * @template T - The worker type for the node instance
- * @template U - The returned object type of the commands
+ * @template U - The options type for the worker
  * 
  */
-class BaseNode<T> implements IBaseNode<T> {
+class BaseNode<T, U=null>
+    implements IBaseNode<T, U>
+{
     public id: BaseNodeId;
-    public worker: BaseNodeWorker<T>;
+    public worker: BaseNodeWorker<T, U>;
     public status: BaseNodeStatus;
     public commands: BaseNodeCommandPlane;
 
     public constructor(
         id: BaseNodeId,
-        worker: BaseNodeWorker<T>,
+        worker: BaseNodeWorker<T, U>,
         status: BaseNodeStatus,
         commands?: BaseNodeCommandActions
     ) {

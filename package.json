@@ -1,5 +1,15 @@
 {
+  "scripts": {
+    "test": "mocha --require ts-node/register --require esm --watch-extensions ts,tsx --watch server/tests/*.test.ts"
+  },
   "dependencies": {
-    "airlock": "file:server"
+    "airlock": "file:server",
+    "chai": "^5.0.3",
+    "esm": "^3.2.25",
+    "mocha": "^10.2.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.11",
+    "@types/mocha": "^10.0.6"
   }
 }
