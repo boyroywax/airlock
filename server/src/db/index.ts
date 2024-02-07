@@ -1,4 +1,5 @@
 import { Libp2p, Libp2pOptions } from 'libp2p';
+
 import {
     BaseNodeCommandOptions,
     BaseNodeCreateOptions,
@@ -14,14 +15,20 @@ const initDefaultLibp2pNode = (
     options?: BaseNodeCreateOptions<Libp2p, Libp2pOptions>
 ) => {
     const manager = new Libp2pNodesManager();
-    const commands = new Libp2pNodeCommandActions();
     manager.create(options);
 
-    console.log(`[initDefaultLibp2pNode] manager: ${manager.get(new BaseNodeId('abcd123')).commands.execute(new BaseNodeCommandOptions('listConnections'))}`)
+    const connections = manager.get(
+        new BaseNodeId('abcd123'))
+        .commands
+        .execute(new BaseNodeCommandOptions('listConnections')
+    )
+
+    console.log(`[initDefaultLibp2pNode] manager: ${connections}`)
     return manager;
 }
 
 export {
-    initDefaultLibp2pNode
+    initDefaultLibp2pNode,
+    Libp2pNodeCommandActions
 }
 

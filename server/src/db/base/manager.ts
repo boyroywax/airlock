@@ -2,6 +2,7 @@ import {
     IBaseNodeCommandActions,
     BaseNodeCommandActions
 } from "./commands.js";
+
 import {
     IBaseNode,
     BaseNode,
@@ -12,6 +13,10 @@ import {
     BaseNodeId,
     BaseNodeWorker
 } from "./node.js";
+
+import {
+    createRandomId
+} from "../../utils/index.js";
 
 /**
  * @constant NodeInstanceTypes
@@ -35,7 +40,7 @@ interface IBaseNodeType<T> {
     type?: T | NodeInstanceTypes;
 }
 
-class BaseNodeInstanceType<T>
+class BaseNodeType<T>
     implements IBaseNodeType<T>
 {
     public type?: T | NodeInstanceTypes;
@@ -57,20 +62,20 @@ class BaseNodeCreateOptions<T, U>
     implements IBaseNodeCreateOptions<T, U>
 {
     public id: BaseNodeId;
-    public type: BaseNodeInstanceType<T>;
+    public type: BaseNodeType<T>;
     public worker: BaseNodeWorker<T, U>;
     public commands: BaseNodeCommandActions;
     public params: string[];
 
     public constructor(
-        id: IBaseNodeId,
-        type?: BaseNodeInstanceType<T>,
+        id?: IBaseNodeId,
+        type?: BaseNodeType<T>,
         worker?: BaseNodeWorker<T, U>,
         commands?: BaseNodeCommandActions,
         params?: string[]
     ) {
-        this.id = id;
-        this.type = type ? type: new BaseNodeInstanceType<T>();
+        this.id = id ? id : new BaseNodeId(createRandomId());
+        this.type = type ? type: new BaseNodeType<T>();
         this.worker = worker ? worker : new BaseNodeWorker<T, U>();
         this.commands = commands ? commands : new BaseNodeCommandActions();
         this.params = params ? params : [];
@@ -80,7 +85,7 @@ class BaseNodeCreateOptions<T, U>
 interface IBaseNodeManagerOptions<T, U> {
     collection: IBaseNodeCreateOptions<T, U>[];
 
-    add(options: IBaseNodeCreateOptions<T, U>): void;
+    add(options?: IBaseNodeCreateOptions<T, U>): void;
     remove(id: IBaseNodeId): void;
     list(): IBaseNodeCreateOptions<T, U>[];
 }
@@ -94,8 +99,10 @@ class BaseNodeManagerOptions<T, U>
         this.collection = options ? options : [];
     }
 
-    public add(options: BaseNodeCreateOptions<T, U>): void {
-        this.collection.push(options);
+    public add(options?: BaseNodeCreateOptions<T, U>): void {
+        if (options) {
+            this.collection.push(options);
+        }
     }
 
     public remove(id: IBaseNodeId): void {
@@ -112,7 +119,7 @@ interface IBaseNodesManager<T, U> {
     nodes: Map<BaseNodeId, IBaseNode<T, U>>;
     options: IBaseNodeManagerOptions<T, U>;
 
-    create(options: IBaseNodeCreateOptions<T, U>): void;
+    create(options?: IBaseNodeCreateOptions<T, U>): void;
     get(id: IBaseNodeId): IBaseNode<T, U>;
     list(): IBaseNodeId[];
     delete(id: IBaseNodeId): void;
@@ -187,6 +194,7 @@ export {
     BaseNodeCreateOptions,
     IBaseNodeCreateOptions,
     NodeInstanceTypes,
+    BaseNodeType,
     IBaseNodeManagerOptions,
     BaseNodeManagerOptions,
 }

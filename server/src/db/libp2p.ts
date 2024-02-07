@@ -3,7 +3,7 @@ import { Libp2p, createLibp2p, Libp2pOptions } from "libp2p";
 
 import { BaseNode, BaseNodeId, BaseNodeStatus, BaseNodeStatuses, BaseNodeWorker, IBaseNode, IBaseNodeWorker } from "./base/node.js";
 import { IBaseNodeCommandActions } from "./base/commands.js";
-import { BaseNodeCreateOptions, BaseNodesManager, IBaseNodesManager, BaseNodeManagerOptions } from "./base/manager.js";
+import { BaseNodeCreateOptions, BaseNodesManager, IBaseNodesManager, BaseNodeManagerOptions, IBaseNodeCreateOptions, NodeInstanceTypes, BaseNodeType } from "./base/manager.js";
 import { defaultLibp2pConfig } from "./publicConfigDefault.js";
 
 
@@ -65,6 +65,24 @@ class Libp2pNode<T=Libp2p, U=Libp2pOptions>
     }
 }
 
+class Libp2pCreateOptions<T=Libp2p, U=Libp2pOptions>
+    extends BaseNodeCreateOptions<T, U>
+    implements IBaseNodeCreateOptions<T, U>
+{
+    public constructor(
+        id?: BaseNodeId,
+        worker?: Libp2pNodeWorker<T, U>,
+        commands?: Libp2pNodeCommandActions
+    ) {
+        super(
+            id,
+            new BaseNodeType<T>(NodeInstanceTypes.LIBP2P),
+            worker,
+            commands
+        );
+    }
+}
+
 class Libp2pNodesManager<T=Libp2p, U=Libp2pOptions>
     extends BaseNodesManager<T, U>
     implements IBaseNodesManager<T, U>
@@ -82,6 +100,7 @@ class Libp2pNodesManager<T=Libp2p, U=Libp2pOptions>
     public create = (
         options?: BaseNodeCreateOptions<T, U>
     ): void => {
+        options = options ? options : new BaseNodeCreateOptions<T, U>();
         this.options.add(options);
 
 
