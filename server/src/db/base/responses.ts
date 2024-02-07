@@ -22,21 +22,21 @@ class BaseNodeResponseObject<T> implements IBaseNodeResponseObject<T> {
     }
 }
 
-interface IBaseNodeResponse<T> {
+interface IBaseNodeResponse {
     code: BaseNodeResponseCode;
     status: IBaseNodeStatus;
-    object?: IBaseNodeResponseObject<T>;
+    object?: IBaseNodeResponseObject<any>;
 }
 
-class BaseNodeResponse<T> implements IBaseNodeResponse<T> {
+class BaseNodeResponse implements IBaseNodeResponse {
     code: BaseNodeResponseCode;
     status: BaseNodeStatus;
-    object?: BaseNodeResponseObject<T>;
+    object?: BaseNodeResponseObject<any>;
 
     constructor(
         code: BaseNodeResponseCode,
         status: BaseNodeStatus,
-        object?: BaseNodeResponseObject<T>,
+        object?: BaseNodeResponseObject<any>,
     ) {
         this.code = code;
         this.status = status;

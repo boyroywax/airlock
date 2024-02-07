@@ -1,29 +1,35 @@
+import { Libp2pNodeCommandActions } from '../libp2p/baseREWORK.js';
 import { IBaseNodeId, BaseNodeId } from './node.js';
 import { IBaseNodeResponse, BaseNodeResponse } from './responses.js';
 
 
-enum BaseNodeCommandAction {
-    CREATE = 'create',
-    GET = 'get',
-    UPDATE = 'update',
-    DELETE = 'delete',
-    LIST = 'list',
-    ADD = 'add',
+interface IBaseNodeCommandActions extends Object{
+    actions: string[]
+}
+
+class BaseNodeCommandActions implements IBaseNodeCommandActions {
+    public actions: string[];
+
+    public constructor(
+        actions: string[] = []
+    ) {
+        this.actions = actions;
+    }
 }
 
 interface IBaseNodeCommandOptions {
-    action: BaseNodeCommandAction;
+    action: string;
     args: string[];
     kwargs: {};
 }
 
 class BaseNodeCommandOptions implements IBaseNodeCommandOptions {
-    public action: BaseNodeCommandAction;
+    public action: string;
     public args: string[];
     public kwargs: {};
 
     public constructor(
-        action: BaseNodeCommandAction,
+        action: string,
         args: string[] = [],
         kwargs: {} = {}
     ) {
@@ -33,16 +39,16 @@ class BaseNodeCommandOptions implements IBaseNodeCommandOptions {
     }
 }
 
-interface IBaseNodeCommand<T> {
+interface IBaseNodeCommand {
     command: BaseNodeCommandOptions;
-    output?: BaseNodeResponse<T>;
+    output?: BaseNodeResponse;
 
-    setOutput(output: BaseNodeResponse<T>): void;
+    setOutput(output: BaseNodeResponse): void;
 }
 
-class BaseNodeCommand<T> implements IBaseNodeCommand<T> {
+class BaseNodeCommand implements IBaseNodeCommand {
     public command: BaseNodeCommandOptions;
-    public output?: BaseNodeResponse<T>;
+    public output?: BaseNodeResponse;
 
     public constructor(
         command: BaseNodeCommandOptions
@@ -50,51 +56,54 @@ class BaseNodeCommand<T> implements IBaseNodeCommand<T> {
         this.command = command;
     }
 
-    public setOutput(output: BaseNodeResponse<T>): void {
+    public setOutput(output: BaseNodeResponse): void {
         this.output = output;
     }
 
 }
 
-interface IBaseNodeCommandPlane<T> {
-    commands: Map<BaseNodeCommandAction, IBaseNodeCommand<T>>;
+interface IBaseNodeCommandPlane {
+    commands: Map<string, IBaseNodeCommand>;
 
-    addCommand(command: IBaseNodeCommand<T>): void;
-    execute(command: IBaseNodeCommand<T>): void;
+    addCommand(command: IBaseNodeCommand): void;
+    execute(command: IBaseNodeCommand): void;
 }
 
-class BaseNodeCommandPlane<T> implements IBaseNodeCommandPlane<T> {
-    public commands: Map<BaseNodeCommandAction, BaseNodeCommand<T>>;
+class BaseNodeCommandPlane implements IBaseNodeCommandPlane {
+    public commands: Map<string, BaseNodeCommand>;
 
     public constructor(
-        availableCommands: BaseNodeCommandAction[] = []
+        availableCommands: BaseNodeCommandActions
     ) {
-        this.commands = this.initCommands(availableCommands) ? this.initCommands(availableCommands) : new Map();
+        this.commands = this.initCommands(availableCommands);
     }
 
     private initCommands(
-        commands: BaseNodeCommandAction[]
-    ): Map<BaseNodeCommandAction, BaseNodeCommand<T>> {
-        let availableCommands = new Map<BaseNodeCommandAction, BaseNodeCommand<T>>();
+        commands: IBaseNodeCommandActions
+    ): Map<string, BaseNodeCommand> {
+        let availableCommands = new Map<string, BaseNodeCommand>();
 
-        commands.forEach((command) => {
-            availableCommands.set(command, new BaseNodeCommand<T>(new BaseNodeCommandOptions(command)));
+        commands.actions.forEach((command) => {
+            availableCommands.set(command, new BaseNodeCommand(
+                new BaseNodeCommandOptions(command)
+            ));
         });
 
         return availableCommands;
     }
 
-    public addCommand(command: BaseNodeCommand<T>): void {
+    public addCommand(command: BaseNodeCommand): void {
         this.commands.set(command.command.action, command);
     }
 
-    public execute(command: BaseNodeCommand<T>): void {
+    public execute(command: BaseNodeCommand): void {
         
     }
 }
 
 export {
-    BaseNodeCommandAction,
+    IBaseNodeCommandActions,
+    BaseNodeCommandActions,
     IBaseNodeCommandOptions,
     BaseNodeCommandOptions,
     BaseNodeCommand,

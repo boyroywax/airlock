@@ -1,4 +1,4 @@
-import { BaseNodeCommandAction, BaseNodeCommandPlane } from "./commands.js";
+import { IBaseNodeCommandActions, BaseNodeCommandPlane, BaseNodeCommandActions } from "./commands.js";
 import { IBaseNode, BaseNode, IBaseNodeId, IBaseNodeWorker, BaseNodeStatuses, BaseNodeStatus, BaseNodeId } from "./node.js";
 
 /**
@@ -23,7 +23,7 @@ interface IBaseNodeCreateOptions<T> {
     id: IBaseNodeId;
     type: NodeInstanceTypes;
     worker: IBaseNodeWorker<T>;
-    commands?: BaseNodeCommandAction[];
+    commands: IBaseNodeCommandActions;
     params?: string[];
 }
 
@@ -31,14 +31,14 @@ class BaseNodeCreateOptions<T> implements IBaseNodeCreateOptions<T> {
     public id: IBaseNodeId;
     public type: NodeInstanceTypes;
     public worker: IBaseNodeWorker<T>;
-    public commands: BaseNodeCommandAction[];
+    public commands: IBaseNodeCommandActions;
     public params: string[];
 
     public constructor(
         id: IBaseNodeId,
         type: NodeInstanceTypes,
         worker: IBaseNodeWorker<T>,
-        commands: BaseNodeCommandAction[] = [],
+        commands: IBaseNodeCommandActions = new BaseNodeCommandActions(),
         params: string[] = []
     ) {
         this.id = id;
@@ -49,37 +49,52 @@ class BaseNodeCreateOptions<T> implements IBaseNodeCreateOptions<T> {
     }
 }
 
-interface IBaseNodesManager<T, U> {
-    nodes: Map<BaseNodeId, IBaseNode<T, U>>;
+interface IBaseNodesManager<T> {
+    nodes: Map<BaseNodeId, IBaseNode<T>>;
 
     create(options: IBaseNodeCreateOptions<T>): void;
-    get(id: IBaseNodeId): IBaseNode<T, U>;
+    get(id: IBaseNodeId): IBaseNode<T>;
     list(): IBaseNodeId[];
     delete(id: IBaseNodeId): void;
 }
 
-class BaseNodesManager<T, U> implements IBaseNodesManager<T, U> {
-    public nodes: Map<BaseNodeId, BaseNode<T, U>>;
+/**
+ * @class BaseNodesManager
+ * @description The manager for base nodes
+ * @summary The manager for base nodes
+ * @implements IBaseNodesManager
+ * @template T - The type of the worker
+ * 
+ */
+class BaseNodesManager<T> implements IBaseNodesManager<T> {
+    public nodes: Map<BaseNodeId, BaseNode<T>>;
 
     public constructor() {
         this.nodes = new Map();
     }
 
     public create(options: BaseNodeCreateOptions<T>): void {
-        const node = new BaseNode<T, U>(
+        const node = new BaseNode<T>(
             options.id,
             options.worker,
             {
                 status: BaseNodeStatuses.NEW,
                 message: `${options.id}: New node created.`
             } as BaseNodeStatus,
-            new BaseNodeCommandPlane<U>(options.commands)
+            options.commands,
         );
         this.nodes.set(options.id, node);
     }
 
-    public get(id: IBaseNodeId): IBaseNode<T, U> {
-        return this.nodes.get(id);
+    public get(id: IBaseNodeId): BaseNode<T> {
+        const activeNode: BaseNode<T> | undefined = this.nodes.get(id);
+
+        if (activeNode) {
+            return activeNode;
+        }
+        else {
+            throw new Error(`${id}: Node not found.`);
+        }
     }
 
     public list(): IBaseNodeId[] {
@@ -92,6 +107,13 @@ class BaseNodesManager<T, U> implements IBaseNodesManager<T, U> {
 }
 
 
+export {
+    BaseNodesManager,
+    IBaseNodesManager,
+    BaseNodeCreateOptions,
+    IBaseNodeCreateOptions,
+    NodeInstanceTypes
+}
 
 
     

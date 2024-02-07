@@ -1,6 +1,6 @@
-import { IBaseNodeCommandPlane, BaseNodeCommandPlane, BaseNodeCommandAction } from "./commands.js";
-import { IBaseNodeResponse, BaseNodeResponse } from "./responses.js";
+import { IBaseNodeCommandPlane, BaseNodeCommandPlane, BaseNodeCommandActions } from "./commands.js";
 import { createRandomId } from "../../utils/index.js";
+
 
 interface IBaseNodeId {
     id: string;
@@ -60,11 +60,11 @@ class BaseNodeStatus implements IBaseNodeStatus {
     }
 }
 
-interface IBaseNode<T, U> {
+interface IBaseNode<T> {
     id: IBaseNodeId;
     worker: IBaseNodeWorker<T>;
     status: IBaseNodeStatus;
-    commands: IBaseNodeCommandPlane<U>;
+    commands: IBaseNodeCommandPlane;
 }
 
 
@@ -75,27 +75,27 @@ interface IBaseNode<T, U> {
  * @property {IBaseNodeId} id - The System Worker ID of the node
  * @property {IBaseNodeWorker<T>} worker - The worker for the node instance
  * @property {IBaseNodeStatus} status - The status of the node instance
- * @property {IBaseNodeCommandPlane<U>} commands - The command plane for the node instance
+ * @property {IBaseNodeCommandPlane} commands - The command plane for the node instance
  * @template T - The worker type for the node instance
  * @template U - The returned object type of the commands
  * 
  */
-class BaseNode<T, U> implements IBaseNode<T, U> {
+class BaseNode<T> implements IBaseNode<T> {
     public id: BaseNodeId;
     public worker: BaseNodeWorker<T>;
     public status: BaseNodeStatus;
-    public commands: BaseNodeCommandPlane<U>;
+    public commands: BaseNodeCommandPlane;
 
     public constructor(
         id: BaseNodeId,
         worker: BaseNodeWorker<T>,
         status: BaseNodeStatus,
-        commands?: BaseNodeCommandAction[]
+        commands?: BaseNodeCommandActions
     ) {
         this.id = id;
         this.worker = worker;
         this.status = status;
-        this.commands = new BaseNodeCommandPlane<U>(commands);
+        this.commands = new BaseNodeCommandPlane(commands);
     }
 }
 
