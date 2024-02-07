@@ -3,7 +3,7 @@ import { Libp2p, createLibp2p, Libp2pOptions } from "libp2p";
 
 import { BaseNode, BaseNodeId, BaseNodeStatus, BaseNodeStatuses, BaseNodeWorker, IBaseNode, IBaseNodeWorker } from "./base/node.js";
 import { IBaseNodeCommandActions } from "./base/commands.js";
-import { BaseNodeCreateOptions, BaseNodesManager, IBaseNodesManager, BaseNodeManagerOptions, IBaseNodeCreateOptions, NodeInstanceTypes, BaseNodeType } from "./base/manager.js";
+import { BaseNodeCreateOptions, BaseNodesManager, IBaseNodesManager, BaseNodeManagerOptions, IBaseNodeCreateOptions, NodeInstanceTypes, BaseNodeType, IBaseNodeManagerOptions } from "./base/manager.js";
 import { defaultLibp2pConfig } from "./publicConfigDefault.js";
 
 
@@ -83,27 +83,38 @@ class Libp2pCreateOptions<T=Libp2p, U=Libp2pOptions>
     }
 }
 
+class Libp2pNodeManagerOptions<T=Libp2p, U=Libp2pOptions> 
+    extends BaseNodeManagerOptions<T, U>
+    implements IBaseNodeManagerOptions<T, U>
+{
+    public constructor(
+        collection?: BaseNodeCreateOptions<T, U>[]
+    ) {
+        super(collection);
+    }
+
+
+}
+
 class Libp2pNodesManager<T=Libp2p, U=Libp2pOptions>
     extends BaseNodesManager<T, U>
     implements IBaseNodesManager<T, U>
 {
     public constructor(
         nodes?: Map<BaseNodeId, Libp2pNode<T, U>>,
-        options?: BaseNodeManagerOptions<T, U>
+        options?: Libp2pNodeManagerOptions<T, U>
     ) {
         super({
             nodes: nodes ? nodes : new Map<BaseNodeId, Libp2pNode<T, U>>(),
-            options: options ? options : new BaseNodeManagerOptions<T, U>()
+            options: options ? options : new Libp2pNodeManagerOptions<T, U>()
         });
     }
 
     public create = (
-        options?: BaseNodeCreateOptions<T, U>
+        options?: Libp2pCreateOptions<T, U>
     ): void => {
-        options = options ? options : new BaseNodeCreateOptions<T, U>();
+        options = options ? options : new Libp2pCreateOptions<T, U>();
         this.options.add(options);
-
-
 
         const node: Libp2pNode<T, U> = new Libp2pNode(
             options?.id ? options.id : new BaseNodeId(),
