@@ -1,8 +1,10 @@
-import { BaseNodeResponse } from './responses.js';
+import { INodeCommandResponse } from '../../models/index.js';
+import { BaseNodeStatus, BaseNodeStatuses } from './node.js';
+import { BaseNodeResponse, IBaseNodeResponse } from './responses.js';
 
 
 interface IBaseNodeCommandActions extends Object{
-    actions: string[]
+    readonly actions: string[]
 }
 
 class BaseNodeCommandActions implements IBaseNodeCommandActions {
@@ -64,7 +66,7 @@ interface IBaseNodeCommandPlane {
     commands: Map<string, IBaseNodeCommand>;
 
     addCommand(command: IBaseNodeCommand): void;
-    execute(command: IBaseNodeCommand): void;
+    execute(command: IBaseNodeCommand['command']): IBaseNodeResponse;
 }
 
 class BaseNodeCommandPlane implements IBaseNodeCommandPlane {
@@ -95,8 +97,16 @@ class BaseNodeCommandPlane implements IBaseNodeCommandPlane {
         this.commands.set(command.command.action, command);
     }
 
-    public execute(command: BaseNodeCommand): void {
-        
+    public execute(command: BaseNodeCommandOptions): BaseNodeResponse {
+        this.commands.get(command.action)?.setOutput(new BaseNodeResponse(
+            200,
+            new BaseNodeStatus(
+                BaseNodeStatuses.NEW,
+                'command executed'
+            )
+        ));
+
+        return this.commands.get(command.action)?.output as BaseNodeResponse;
     }
 }
 

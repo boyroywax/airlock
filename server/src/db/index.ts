@@ -1,30 +1,27 @@
+import { Libp2p, Libp2pOptions } from 'libp2p';
 import {
-    Libp2pNode,
-    Libp2pNodeConfig,
+    BaseNodeCommandOptions,
+    BaseNodeCreateOptions,
+    BaseNodeId,
+} from './base/index.js';
+
+import {
+    Libp2pNodeCommandActions,
     Libp2pNodesManager
-} from "./libp2p/index.js"
+} from './libp2p.js';
 
-import {
-    IPFSNode,
-    IPFSNodeConfig,
-    IPFSNodesManager
-} from "./ipfs/index.js"
+const initDefaultLibp2pNode = (
+    options?: BaseNodeCreateOptions<Libp2p, Libp2pOptions>
+) => {
+    const manager = new Libp2pNodesManager();
+    const commands = new Libp2pNodeCommandActions();
+    manager.create(options);
 
-import {
-    OrbitDBNode,
-    OrbitDBNodeConfig,
-    OrbitDBNodesManager
-} from "./orbitdb/index.js"
+    console.log(`[initDefaultLibp2pNode] manager: ${manager.get(new BaseNodeId('abcd123')).commands.execute(new BaseNodeCommandOptions('listConnections'))}`)
+    return manager;
+}
 
 export {
-    Libp2pNode,
-    Libp2pNodeConfig,
-    Libp2pNodesManager,
-    IPFSNode,
-    IPFSNodeConfig,
-    IPFSNodesManager,
-    OrbitDBNode,
-    OrbitDBNodeConfig,
-    OrbitDBNodesManager
+    initDefaultLibp2pNode
 }
 

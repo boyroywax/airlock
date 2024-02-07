@@ -12,7 +12,9 @@ interface IBaseNodeId {
     id: string;
 }
 
-class BaseNodeId implements IBaseNodeId {
+class BaseNodeId
+    implements IBaseNodeId
+{
     public id: string;
 
     public constructor(id?: string) {

@@ -2,7 +2,7 @@
 import { Libp2p, Libp2pOptions } from 'libp2p';
 
 import { BaseNodeId } from '../src/db/base/node.js';
-import { Libp2pNodesManager } from '../src/db/libp2p/baseREWORK.js';
+import { Libp2pNodesManager } from '../src/db/libp2p.js';
 import { BaseNodeCreateOptions } from '../src/db/base/manager.js';
 import { BaseNodeCommand, BaseNodeCommandOptions } from '../src/db/base/commands.js';
 import { expect } from 'chai';

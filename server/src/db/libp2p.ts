@@ -1,17 +1,16 @@
 import { ServiceMap } from "@libp2p/interface";
 import { Libp2p, createLibp2p, Libp2pOptions } from "libp2p";
 
-import { BaseNode, BaseNodeId, BaseNodeStatus, BaseNodeStatuses, BaseNodeWorker, IBaseNode, IBaseNodeWorker } from "../base/node.js";
-import { IBaseNodeCommandActions } from "../base/commands.js";
-import { BaseNodeCreateOptions, BaseNodesManager, IBaseNodesManager, BaseNodeManagerOptions } from "../base/manager.js";
+import { BaseNode, BaseNodeId, BaseNodeStatus, BaseNodeStatuses, BaseNodeWorker, IBaseNode, IBaseNodeWorker } from "./base/node.js";
+import { IBaseNodeCommandActions } from "./base/commands.js";
+import { BaseNodeCreateOptions, BaseNodesManager, IBaseNodesManager, BaseNodeManagerOptions } from "./base/manager.js";
 import { defaultLibp2pConfig } from "./publicConfigDefault.js";
-import e from "express";
 
 
 class Libp2pNodeCommandActions
     implements IBaseNodeCommandActions
 {
-    actions: string[] = [
+    readonly actions: string[] = [
         'dial',
         'dialProtocol',
         'hangUp',
@@ -76,24 +75,27 @@ class Libp2pNodesManager<T=Libp2p, U=Libp2pOptions>
     ) {
         super({
             nodes: nodes ? nodes : new Map<BaseNodeId, Libp2pNode<T, U>>(),
-            options
+            options: options ? options : new BaseNodeManagerOptions<T, U>()
         });
     }
 
     public create = (
-        options: BaseNodeCreateOptions<T, U>
+        options?: BaseNodeCreateOptions<T, U>
     ): void => {
         this.options.add(options);
 
+
+
         const node: Libp2pNode<T, U> = new Libp2pNode(
-            options.id,
-            options.worker = new Libp2pNodeWorker<T, U>(),
+            options?.id ? options.id : new BaseNodeId(),
+            options?.worker ? options.worker : new Libp2pNodeWorker<T, U>(),
             {
                 status: BaseNodeStatuses.NEW,
                 message: `${options.id}: New node created.`
             } as BaseNodeStatus,
             options.commands = new Libp2pNodeCommandActions()
         ) as Libp2pNode<T, U>;
+
         this.nodes.set(node.id, node);
     }
 }

@@ -90,8 +90,8 @@ class BaseNodeManagerOptions<T, U>
 {
     public collection: BaseNodeCreateOptions<T, U>[];
 
-    public constructor(options: BaseNodeCreateOptions<T, U>[]) {
-        this.collection = options;
+    public constructor(options?: BaseNodeCreateOptions<T, U>[]) {
+        this.collection = options ? options : [];
     }
 
     public add(options: BaseNodeCreateOptions<T, U>): void {
