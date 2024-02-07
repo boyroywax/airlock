@@ -1,64 +1,98 @@
-import { INodeCommandResponse } from '../../models/index.js';
-import { BaseNodeStatus, BaseNodeStatuses } from './node.js';
-import { BaseNodeResponse, BaseNodeResponseObject, IBaseNodeResponse } from './responses.js';
+import {
+    BaseNodeStatus,
+    BaseNodeStatuses
+} from './node.js';
+
+import {
+    BaseNodeResponse,
+    BaseNodeResponseObject,
+    IBaseNodeResponse
+} from './responses.js';
 
 
-interface IBaseNodeCommandActions extends Object{
-    readonly actions: string[]
+interface IBaseNodeCommandActions
+    extends Object
+{
+    actions: Map<IBaseNodeCommand['processId'], IBaseNodeCommand>;
+
+    add(action: IBaseNodeCommand): void;
+    remove(processId: IBaseNodeCommand['processId']): void;
+    all(): IBaseNodeCommand[];
 }
 
-class BaseNodeCommandActions implements IBaseNodeCommandActions {
-    public actions: string[];
+class BaseNodeCommandActions
+    implements IBaseNodeCommandActions
+{
+    public actions: Map<BaseNodeCommand['processId'], BaseNodeCommand>;
 
     public constructor(
-        actions: string[] = []
+        actions: BaseNodeCommand[]
     ) {
-        this.actions = actions;
+        this.actions = new Map<BaseNodeCommand['processId'], BaseNodeCommand>();
+
+        for (let action of actions) {
+            this.add(action);
+        }
+
+    }
+
+    public add(action: BaseNodeCommand): void {
+        this.actions.set(action.processId, action);
+    }
+
+    public remove(processId: BaseNodeCommand['processId']): void {
+        this.actions.delete(processId);
+    }
+
+    public all(): BaseNodeCommand[] {
+        return Array.from(this.actions.values());
     }
 }
 
-interface IBaseNodeCommandOptions<T> {
-    worker: T;
+interface IBaseNodeCommandOption {
     action: string;
     args: string[];
     kwargs: {};
 }
 
-class BaseNodeCommandOptions<T>
-    implements IBaseNodeCommandOptions<T>
+class BaseNodeCommandOption
+    implements IBaseNodeCommandOption
 {
-    public worker: T;
     public action: string;
     public args: string[];
     public kwargs: {};
 
     public constructor(
-        worker?: T,
         action: string,
         args?: string[],
         kwargs?: {}
     ) {
-        this.worker = worker ? worker : {} as T;
         this.action = action;
         this.args = args ? args : [];
         this.kwargs = kwargs ? kwargs : {};
     }
 }
 
-interface IBaseNodeCommand<T> {
-    process: BaseNodeCommandOptions<T>;
+interface IBaseNodeCommand {
+    processId: string;
+    process: BaseNodeCommandOption;
     output?: BaseNodeResponse;
 
     setOutput(output: BaseNodeResponse): void;
 }
 
-class BaseNodeCommand<T> implements IBaseNodeCommand<T> {
-    public process: BaseNodeCommandOptions<T>;
+class BaseNodeCommand
+    implements IBaseNodeCommand
+{
+    public processId: string;
+    public process: BaseNodeCommandOption;
     public output?: BaseNodeResponse;
 
     public constructor(
-        command: BaseNodeCommandOptions<T>
+        command: BaseNodeCommandOption,
+        processId?: string,
     ) {
+        this.processId = processId ? processId : '0';
         this.process = command;
     }
 
@@ -69,70 +103,50 @@ class BaseNodeCommand<T> implements IBaseNodeCommand<T> {
 }
 
 interface IBaseNodeCommandPlane<T> {
-    commands: Map<string, IBaseNodeCommand<T>>;
+    commands: IBaseNodeCommandActions;
+    worker: T;
 
-    addCommand(command: IBaseNodeCommand<T>): void;
-    execute(command: IBaseNodeCommand<T>: IBaseNodeResponse;
+    run(command: IBaseNodeCommand): IBaseNodeResponse;
 }
 
-class BaseNodeCommandPlane<T> implements IBaseNodeCommandPlane<T> {
-    public commands: Map<string, BaseNodeCommand<T>>;
+class BaseNodeCommandPlane<T>
+    implements IBaseNodeCommandPlane<T>
+{
+    public commands: BaseNodeCommandActions;
+    public worker: T;
 
     public constructor(
-        availableCommands?: BaseNodeCommandActions
+        worker: T,
+        commands?: BaseNodeCommandActions | BaseNodeCommand[]
     ) {
-        const commands = availableCommands ?
-            availableCommands : new BaseNodeCommandActions();
-        this.commands = this.initCommands(commands);
+        this.worker = worker;
+        this.commands = commands ? new BaseNodeCommandActions([]) : new BaseNodeCommandActions(commands=[]);
     }
 
-    private initCommands(
-        commands: IBaseNodeCommandActions
-    ): Map<string, BaseNodeCommand<T>> {
-        let availableCommands = new Map<string, BaseNodeCommand<T>>();
-
-        commands.actions.forEach((command) => {
-            availableCommands.set(command, new BaseNodeCommand<T>(
-                new BaseNodeCommandOptions<T>(
-                    {} as T,
-                    command,
-                    [],
-                    {}
-                )
-            ));
-        });
-
-        return availableCommands;
-    }
-
-    public addCommand(command: BaseNodeCommand<T>): void {
-        this.commands.set(command.process.action, command);
-    }
-
-    public execute(command: BaseNodeCommand<T>): BaseNodeResponse {
-        const worker: T = command.process.worker;
-        const action: string = command.process.action;
-
+    public run(command: BaseNodeCommand): BaseNodeResponse {
         // Execute the Command
-        // ...
-
-        // Set the output of the command
-        command.setOutput(new BaseNodeResponse(
-            200,
-            new BaseNodeStatus(BaseNodeStatuses.STARTED, 'Command Executed')
-        ));
+        this.execute(command);
 
         return command.output as BaseNodeResponse;
     }
 
-        
+    private execute = async (command: BaseNodeCommand): Promise<void> => {
+        switch (command.process.action) {
+            default:
+                command.setOutput(new BaseNodeResponse(
+                    400,
+                    new BaseNodeStatus(BaseNodeStatuses.ERROR, 'Command Not Found')
+                ));
+                break;
+        }
+    }
 }
 
 export {
     IBaseNodeCommandActions,
     BaseNodeCommandActions,
-    IBaseNodeCommandOptions,
-    BaseNodeCommandOptions,
+    IBaseNodeCommandOption,
+    BaseNodeCommandOption,
     BaseNodeCommand,
     IBaseNodeCommandPlane,
     BaseNodeCommandPlane
