@@ -1,7 +1,8 @@
 import {
     IBaseNodeCommandPlane,
     BaseNodeCommandPlane,
-    BaseNodeCommandActions
+    BaseNodeCommandActions,
+    BaseNodeCommand
 } from "./commands.js";
 import {
     createRandomId
@@ -31,19 +32,14 @@ interface IBaseNodeWorker<T, U> {
 class BaseNodeWorker<T, U>
     implements IBaseNodeWorker<T, U>
 {
-    public worker?: T;
+    public worker: T;
 
     public constructor(worker?: T, options?: U) {
-        if (!worker) {
-            this.createWorker(options);
-        }
-        else {
-            this.worker = worker;
-        }
+        this.worker = worker ? worker : this.createWorker(options);
     }
 
-    createWorker = async (options?: U): Promise<void> => {
-        this.worker = {} as T;
+    createWorker = (options?: U): T => {
+        return {} as T;
     }
 }
 
@@ -83,11 +79,10 @@ class BaseNodeStatus
     }
 }
 
-interface IBaseNode<T, U=null> {
+interface IBaseNode<T, U> {
     id: IBaseNodeId;
-    worker: IBaseNodeWorker<T, U>;
     status: IBaseNodeStatus;
-    commands: IBaseNodeCommandPlane;
+    commands: IBaseNodeCommandPlane<T, U>;
 }
 
 
@@ -103,24 +98,32 @@ interface IBaseNode<T, U=null> {
  * @template U - The options type for the worker
  * 
  */
-class BaseNode<T, U=null>
+class BaseNode<T, U>
     implements IBaseNode<T, U>
 {
     public id: BaseNodeId;
-    public worker: BaseNodeWorker<T, U>;
     public status: BaseNodeStatus;
-    public commands: BaseNodeCommandPlane;
+    public commands: BaseNodeCommandPlane<T, U>;
 
     public constructor(
-        id: BaseNodeId,
-        worker: BaseNodeWorker<T, U>,
-        status: BaseNodeStatus,
-        commands?: BaseNodeCommandActions
+        id?: BaseNodeId,
+        worker?: BaseNodeWorker<T, U>,
+        status?: BaseNodeStatus,
+        commands?: BaseNodeCommandActions | BaseNodeCommandPlane<T, U> | BaseNodeCommand[]
     ) {
-        this.id = id;
-        this.worker = worker;
-        this.status = status;
-        this.commands = new BaseNodeCommandPlane(commands);
+        this.id = id ? id : new BaseNodeId();
+        this.status = status ? status : new BaseNodeStatus(BaseNodeStatuses.NEW, 'New node instance created');
+        worker = worker ? worker : new BaseNodeWorker<T, U>();
+        
+        if (commands instanceof BaseNodeCommandPlane) {
+            this.commands = commands;
+        }
+        else if (Array.isArray(commands)) {
+            this.commands = new BaseNodeCommandPlane<T, U>(worker, commands);
+        }
+        else {
+            this.commands = new BaseNodeCommandPlane<T, U>(worker);
+        }
     }
 }
 

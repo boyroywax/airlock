@@ -1,6 +1,10 @@
 import {
     IBaseNodeCommandActions,
-    BaseNodeCommandActions
+    BaseNodeCommandActions,
+    BaseNodeCommandPlane,
+    BaseNodeCommand,
+    IBaseNodeCommand,
+    IBaseNodeCommandPlane
 } from "./commands.js";
 
 import {
@@ -54,7 +58,7 @@ interface IBaseNodeCreateOptions<T, U> {
     id: IBaseNodeId;
     type: IBaseNodeType<T>;
     worker: IBaseNodeWorker<T, U>;
-    commands: IBaseNodeCommandActions;
+    commands: IBaseNodeCommandActions | IBaseNodeCommand[] | IBaseNodeCommandPlane<T, U>;
     params: string[];
 }
 
@@ -64,20 +68,29 @@ class BaseNodeCreateOptions<T, U>
     public id: BaseNodeId;
     public type: BaseNodeType<T>;
     public worker: BaseNodeWorker<T, U>;
-    public commands: BaseNodeCommandActions;
+    public commands: BaseNodeCommandPlane<T, U>;
     public params: string[];
 
     public constructor(
         id?: IBaseNodeId,
         type?: BaseNodeType<T>,
         worker?: BaseNodeWorker<T, U>,
-        commands?: BaseNodeCommandActions,
+        commands?: BaseNodeCommandActions | BaseNodeCommand[] | BaseNodeCommandPlane<T, U>,
         params?: string[]
     ) {
         this.id = id ? id : new BaseNodeId(createRandomId());
         this.type = type ? type: new BaseNodeType<T>();
         this.worker = worker ? worker : new BaseNodeWorker<T, U>();
-        this.commands = commands ? commands : new BaseNodeCommandActions();
+        
+        if (commands instanceof BaseNodeCommandPlane) {
+            this.commands = commands;
+        }
+        else if (commands instanceof BaseNodeCommandActions) {
+            this.commands = new BaseNodeCommandPlane<T, U>(this.worker, commands);
+        }
+        else {
+            this.commands = new BaseNodeCommandPlane<T, U>(this.worker);
+        }
         this.params = params ? params : [];
     }
 }

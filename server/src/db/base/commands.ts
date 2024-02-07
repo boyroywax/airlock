@@ -1,6 +1,8 @@
 import {
     BaseNodeStatus,
-    BaseNodeStatuses
+    BaseNodeStatuses,
+    BaseNodeWorker,
+    IBaseNodeWorker
 } from './node.js';
 
 import {
@@ -102,43 +104,61 @@ class BaseNodeCommand
 
 }
 
-interface IBaseNodeCommandPlane<T> {
+interface IBaseNodeCommandPlane<T, U> {
     commands: IBaseNodeCommandActions;
-    worker: T;
+    worker: IBaseNodeWorker<T, U>;
 
-    run(command: IBaseNodeCommand): IBaseNodeResponse;
+    run(processId: IBaseNodeCommand['processId']): IBaseNodeResponse;
+    execute(command: IBaseNodeCommand): Promise<BaseNodeResponse>;
 }
 
-class BaseNodeCommandPlane<T>
-    implements IBaseNodeCommandPlane<T>
+class BaseNodeCommandPlane<T, U>
+    implements IBaseNodeCommandPlane<T, U>
 {
     public commands: BaseNodeCommandActions;
-    public worker: T;
+    public worker: BaseNodeWorker<T, U>;
 
     public constructor(
-        worker: T,
+        worker: BaseNodeWorker<T, U>,
         commands?: BaseNodeCommandActions | BaseNodeCommand[]
     ) {
         this.worker = worker;
-        this.commands = commands ? new BaseNodeCommandActions([]) : new BaseNodeCommandActions(commands=[]);
+        this.commands = commands ? new BaseNodeCommandActions([]) : new BaseNodeCommandActions(commands? commands : []);
     }
 
-    public run(command: BaseNodeCommand): BaseNodeResponse {
+    public run(processId: BaseNodeCommand['processId']): BaseNodeResponse {
+
+        const command = this.commands.actions.get(processId);
+
+        if (!command) {
+            return new BaseNodeResponse(
+                400,
+                new BaseNodeStatus(BaseNodeStatuses.ERROR, 'Command Not Found')
+            );
+        }
         // Execute the Command
-        this.execute(command);
+        this.execute(command).then ( (response) => {
+            command.setOutput(response as BaseNodeResponse);
+        });
 
         return command.output as BaseNodeResponse;
     }
 
-    private execute = async (command: BaseNodeCommand): Promise<void> => {
+    public execute = async (command: BaseNodeCommand): Promise<BaseNodeResponse> => {
+        let response: BaseNodeResponse = new BaseNodeResponse(
+            400,
+            new BaseNodeStatus(BaseNodeStatuses.ERROR, 'Command Not Found')
+        );
+
         switch (command.process.action) {
             default:
-                command.setOutput(new BaseNodeResponse(
+                response = new BaseNodeResponse(
                     400,
                     new BaseNodeStatus(BaseNodeStatuses.ERROR, 'Command Not Found')
-                ));
+                );
                 break;
         }
+        return response;
     }
 }
 
@@ -147,6 +167,7 @@ export {
     BaseNodeCommandActions,
     IBaseNodeCommandOption,
     BaseNodeCommandOption,
+    IBaseNodeCommand,
     BaseNodeCommand,
     IBaseNodeCommandPlane,
     BaseNodeCommandPlane

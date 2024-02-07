@@ -3,6 +3,8 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 
 import { libp2pRouter, metricsRouter, ipfsRouter, orbitdbRouter } from './routes/index.js';
+import { BaseNode } from '../db/base/node.js';
+import { BaseNodesManager } from '../db/base/manager.js';
 
 const defaultRouters = [
     libp2pRouter,
@@ -32,7 +34,7 @@ class ApiServer {
     private routers: express.Router[];
 
     constructor(
-        options?: ApiServerOptions
+        options?: ApiServerOptions,
     ) {
         this.port = options?.port || 3000;
         this.app = express();

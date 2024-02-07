@@ -1,8 +1,8 @@
 export {
     IBaseNodeCommandActions,
     BaseNodeCommandActions,
-    IBaseNodeCommandOptions,
-    BaseNodeCommandOptions,
+    IBaseNodeCommandOption,
+    BaseNodeCommandOption,
     BaseNodeCommand,
     IBaseNodeCommandPlane,
     BaseNodeCommandPlane

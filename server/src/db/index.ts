@@ -1,18 +1,26 @@
-import { Libp2p, Libp2pOptions } from 'libp2p';
+import {
+    Libp2p,
+    Libp2pOptions
+} from 'libp2p';
+
 
 import {
-    BaseNodeCommandOptions,
-    BaseNodeCreateOptions,
     BaseNodeId,
+    BaseNodeResponse,
+    BaseNodeCommandActions,
+    BaseNodeResponseCode,
 } from './base/index.js';
 
 import {
+    Libp2pNode,
     Libp2pNodeCommandActions,
+    Libp2pNodeCreateOptions,
     Libp2pNodesManager
 } from './libp2p.js';
 
+
 const initDefaultLibp2pNode = (
-    options?: BaseNodeCreateOptions<Libp2p, Libp2pOptions>
+    options?: Libp2pNodeCreateOptions<Libp2p, Libp2pOptions>
 ) => {
     const manager = new Libp2pNodesManager();
     manager.create(options);
@@ -20,15 +28,20 @@ const initDefaultLibp2pNode = (
     const connections = manager.get(
         new BaseNodeId('abcd123'))
         .commands
-        .execute(new BaseNodeCommandOptions('listConnections')
-    )
+        .run('connections:list');
 
     console.log(`[initDefaultLibp2pNode] manager: ${connections}`)
     return manager;
 }
 
 export {
+    BaseNodeResponse,
+    BaseNodeResponseCode,
+    BaseNodeCommandActions,
+    Libp2pNode,
     initDefaultLibp2pNode,
-    Libp2pNodeCommandActions
+    Libp2pNodeCommandActions,
+    Libp2pNodeCreateOptions,
+    Libp2pNodesManager
 }
 

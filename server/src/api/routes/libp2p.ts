@@ -1,12 +1,13 @@
-import express, { Response, Request, response } from 'express';   
-
-
+import express, { Response, Request, response } from 'express'; 
+import { initDefaultLibp2pNode, Libp2pNode, Libp2pNodesManager, BaseNodeResponse, BaseNodeResponseCode, Libp2pNodeCreateOptions } from '../../db/index.js';
+import { BaseNodeId, BaseNodeStatus, BaseNodeStatuses } from '../../db/base/node.js';
+import { Libp2pBaseRequest } from '../../models/api.js';
 
 
 
 const router = express.Router();
 
-const libp2pNodesManager: Libp2pNodesManager = createLibp2pManager();
+const libp2pNodesManager: Libp2pNodesManager = initDefaultLibp2pNode();
 
 /**
  * @constant activeNode
@@ -16,8 +17,22 @@ const libp2pNodesManager: Libp2pNodesManager = createLibp2pManager();
  * @summary This function returns the active libp2p node instance,
  *          if the node is not found, it will return an error
  */
-const activeNode = (id: Libp2pNode['id']): Libp2pNode | INodeActionResponse => {
-    return libp2pNodesManager.get(id);
+const activeNode = async (id: Libp2pNode['id']): Promise<Libp2pNode | BaseNodeResponse> => {
+    const libp2pNode = libp2pNodesManager.get(id);
+    if (libp2pNode instanceof Libp2pNode) {
+        return libp2pNode;
+    }
+    else {
+        return new BaseNodeResponse(
+            BaseNodeResponseCode.NOT_FOUND,
+            new BaseNodeStatus(
+                BaseNodeStatuses.ERROR,
+                `Libp2p Node ${id} not found`,
+                new Error(`Libp2p Node ${id} not found`)
+            ),
+        );
+    }
+
 }
 
 /**
@@ -69,9 +84,9 @@ const activeNode = (id: Libp2pNode['id']): Libp2pNode | INodeActionResponse => {
  *     example: /or
  *  */
 router.post('/libp2p/create', (req: Libp2pBaseRequest, res: Response) => {
-    const libp2pNodeConfig: Libp2pNodeConfig = {
+    const libp2pNodeConfig: Libp2pNodeCreateOptions = new Libp2pNodeCreateOptions({
       id: req.body.id,
-    }
+    });
     res.send(libp2pNodesManager.create(libp2pNodeConfig));
 });
 
@@ -126,7 +141,7 @@ router.get('/libp2p/list', async (req: Request, res: Response) => {
  *     example: /or
  *  */
 router.post('/libp2p/remove', (req: Libp2pBaseRequest, res: Response) => {
-    res.send(libp2pNodesManager.delete(req.body.id));
+    res.send(libp2pNodesManager.delete(new BaseNodeId(req.body.id)));
 });
 
 /**
@@ -156,10 +171,10 @@ router.post('/libp2p/remove', (req: Libp2pBaseRequest, res: Response) => {
  *        type: string
  *     example: /or
  *  */
-router.post('/libp2p/node/id', (req: Libp2pBaseRequest, res: Response) => {
-    const libp2pNodeResponse = activeNode(req.body.id);
+router.post('/libp2p/node/id', async (req: Libp2pBaseRequest, res: Response) => {
+    const libp2pNodeResponse = await activeNode(new BaseNodeId(req.body.id));
     if (libp2pNodeResponse instanceof Libp2pNode) {
-        res.send(libp2pNodeResponse.getPeerID());
+        res.send(libp2pNodeResponse.commands.run('id'));
     } 
     else {
         res.send(libp2pNodeResponse);
