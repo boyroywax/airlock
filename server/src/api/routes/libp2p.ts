@@ -18,7 +18,7 @@ const libp2pNodesManager: Libp2pNodesManager = initDefaultLibp2pNode();
  * @summary This function returns the active libp2p node instance,
  *          if the node is not found, it will return an error
  */
-const activeNode = async (id: Libp2pNode['id']): Promise<Libp2pNode | BaseNodeResponse<any>> => {
+const activeNode = async (id: Libp2pNode['id']['id']): Promise<Libp2pNode | BaseNodeResponse<any>> => {
     const libp2pNode = libp2pNodesManager.get(id);
     if (libp2pNode instanceof Libp2pNode) {
         return libp2pNode;
@@ -88,7 +88,15 @@ router.post('/libp2p/create', (req: Libp2pBaseRequest, res: Response) => {
     const libp2pNodeConfig: Libp2pNodeCreateOptions = new Libp2pNodeCreateOptions({
       id: req.body.id,
     });
-    res.send(libp2pNodesManager.create(libp2pNodeConfig));
+    libp2pNodesManager.create(libp2pNodeConfig);
+
+    res.send(new BaseNodeResponse(
+        BaseNodeResponseCode.SUCCESS,
+        new BaseNodeStatus(
+            BaseNodeStatuses.DONE,
+            `Libp2p Node ${req.body.id} created`
+        )
+    ))
 });
 
 /**
@@ -142,7 +150,15 @@ router.get('/libp2p/list', async (req: Request, res: Response) => {
  *     example: /or
  *  */
 router.post('/libp2p/remove', (req: Libp2pBaseRequest, res: Response) => {
-    res.send(libp2pNodesManager.delete(new BaseNodeId(req.body.id)));
+    libp2pNodesManager.delete(req.body.id);
+
+    res.send(new BaseNodeResponse(
+        BaseNodeResponseCode.SUCCESS,
+        new BaseNodeStatus(
+            BaseNodeStatuses.DONE,
+            `Libp2p Node ${req.body.id} removed`
+        )
+    ))
 });
 
 /**
@@ -173,9 +189,9 @@ router.post('/libp2p/remove', (req: Libp2pBaseRequest, res: Response) => {
  *     example: /or
  *  */
 router.post('/libp2p/node/id', async (req: Libp2pBaseRequest, res: Response) => {
-    const libp2pNodeResponse = await activeNode(new BaseNodeId(req.body.id));
+    const libp2pNodeResponse = await activeNode(req.body.id);
     if (libp2pNodeResponse instanceof Libp2pNode) {
-        res.send(libp2pNodeResponse.commands.run('id'));
+        res.send(await libp2pNodeResponse.commands.run('id'));
     } 
     else {
         res.send(libp2pNodeResponse);
@@ -211,7 +227,7 @@ router.post('/libp2p/node/id', async (req: Libp2pBaseRequest, res: Response) => 
  *     example: /or
  *  */
 router.post('/libp2p/node/status', (req: Libp2pBaseRequest, res: Response) => {
-    const libp2pNodeResponse = activeNode(new BaseNodeId(req.body.id));
+    const libp2pNodeResponse = activeNode(req.body.id);
     if (libp2pNodeResponse instanceof Libp2pNode) {
         res.send(libp2pNodeResponse.commands.run('getStatus'));
     }
@@ -248,11 +264,11 @@ router.post('/libp2p/node/status', (req: Libp2pBaseRequest, res: Response) => {
  *     example: /or
  *  */
 router.post('/libp2p/node/start', async (req: Libp2pBaseRequest, res: Response) => {
-    const libp2pNodeResponse = activeNode(new BaseNodeId(req.body.id));
+    const libp2pNodeResponse = activeNode(req.body.id);
     let response: BaseNodeResponse<string> | undefined;
 
     if (libp2pNodeResponse instanceof Libp2pNode) {
-        const currentStatus = libp2pNodeResponse.commands.run('getStatus');
+        const currentStatus = await libp2pNodeResponse.commands.run('getStatus');
         if ( currentStatus.output?.object === 'started') {
             response = new BaseNodeResponse(
                 BaseNodeResponseCode.SUCCESS,
@@ -304,11 +320,11 @@ router.post('/libp2p/node/start', async (req: Libp2pBaseRequest, res: Response) 
  *     example: /or
  *  */
 router.post('/libp2p/node/stop', async (req: Libp2pBaseRequest, res: Response) => {
-    const libp2pNodeResponse = activeNode(new BaseNodeId(req.body.id));
+    const libp2pNodeResponse = activeNode(req.body.id);
     let response: BaseNodeResponse<string> | undefined;
 
     if (libp2pNodeResponse instanceof Libp2pNode) {
-        const currentStatus = libp2pNodeResponse.commands.run('getStatus');
+        const currentStatus = await libp2pNodeResponse.commands.run('getStatus');
         if ( currentStatus.output?.object === 'stopped') {
             response = new BaseNodeResponse(
                 BaseNodeResponseCode.SUCCESS,
@@ -368,7 +384,7 @@ router.post('/libp2p/node/stop', async (req: Libp2pBaseRequest, res: Response) =
  *     example: /or
  *  */
 router.post('/libp2p/node/command', async (req: Libp2pCommandRequest, res: Response ) => {
-    const libp2pNodeResponse = activeNode(new BaseNodeId(req.body.id));
+    const libp2pNodeResponse = activeNode(req.body.id);
     let response: BaseNodeResponse<string> | undefined;
 
     if (libp2pNodeResponse instanceof Libp2pNode) {
@@ -377,7 +393,8 @@ router.post('/libp2p/node/command', async (req: Libp2pCommandRequest, res: Respo
             new BaseNodeCommandOption(
                 req.body.command,
                 args
-            )
+            ),
+            req.body.id
         )
 
         response = await libp2pNodeResponse.commands.execute(command);

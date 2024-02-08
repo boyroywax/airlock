@@ -54,6 +54,7 @@ import {
     BaseNodeResponseCode,
     BaseNodeResponseObject
 } from "./base/index.js";
+import { createRandomId } from "../utils/index.js";
 
 class Libp2pNodeCommandActions
     extends BaseNodeCommandActions
@@ -62,7 +63,7 @@ class Libp2pNodeCommandActions
     public constructor(
         actions?: Array<BaseNodeCommand>
     ) {
-        super(actions ? actions : [
+        const defaultActions = [
             new BaseNodeCommand(
                 new BaseNodeCommandOption(
                     'start'
@@ -105,39 +106,43 @@ class Libp2pNodeCommandActions
                 ),
                 'status:get'
             ),
-        ] as Array<BaseNodeCommand>);
+        ] as Array<BaseNodeCommand>;
+        
+        super(defaultActions)
+        console.log(`[Libp2pNodeCommandActions] constructor: actions: ${this.all()}`);
     }
 }
 
 class Libp2pNodeWorker<T=Libp2p<ServiceMap>, U=Libp2pOptions> 
-    extends BaseNodeWorker<T, U>
     implements IBaseNodeWorker<T, U>
 {
+    public instance?: T;
+
     public constructor(
-        worker: T,
+        worker?: T,
         options?: U
     ) {
-        super()
         if (worker) {
-            this.worker = worker;
+            this.instance = worker;
         }
         else {
-            this.createWorker(options as U);
+
+            this.createWorker(options).then((worker: T) => {
+                this.instance = worker;
+            });
         }
+
     }
     
-    public createWorker = (
-        options?: U
-    ): T => {
+    public createWorker = async (
+        options?: U | Libp2pOptions
+    ): Promise<T> => {
         if (!options) {
-            options = defaultLibp2pConfig as U;
+            options = defaultLibp2pConfig as Libp2pOptions;
         }
         let libp2p: T | undefined;
         try {
-            createLibp2p(options as Libp2pOptions)
-            .then( (node: Libp2p) => {
-                libp2p = node as T;
-            }) as T;
+            libp2p = await createLibp2p(options) as T;
         }
         catch (error) {
             console.error(`[Libp2pNodeWorker] createWorker: ${error}`);
@@ -148,28 +153,34 @@ class Libp2pNodeWorker<T=Libp2p<ServiceMap>, U=Libp2pOptions>
         }
         return libp2p as T;
         
-        
     }
 }
 
 class Libp2pNode<T=Libp2p, U=Libp2pOptions>
-    extends BaseNode<T, U>
     implements IBaseNode<T, U>
 {
     public commands: Libp2pNodeCommandPlane<T, U>;
+    public id: BaseNodeId;
+    public status: BaseNodeStatus;
 
     public constructor(
         id: BaseNodeId,
-        worker: Libp2pNodeWorker<T, U>,
-        status: BaseNodeStatus,
-        commands: Libp2pNodeCommandActions | Libp2pNodeCommandPlane<T, U> | BaseNodeCommand[]
+        status?: BaseNodeStatus,
+        commands?: Libp2pNodeCommandActions | Libp2pNodeCommandPlane<T, U> | BaseNodeCommand[],
+        worker?: Libp2pNodeWorker<T, U>
+
     ) {
-        super(
-            id,
-            worker,
-            status,
-            commands
+        this.status = new BaseNodeStatus(
+            status ? status.status : BaseNodeStatuses.NEW,
+            status ? status.message : 'Creating new Libp2p Node'
         );
+
+        this.id = id ? id : new BaseNodeId(createRandomId());
+
+        if (!worker) {
+            worker = new Libp2pNodeWorker<T, U>();
+        }
+
         if (commands instanceof Libp2pNodeCommandActions) {
             this.commands = new Libp2pNodeCommandPlane<T, U>(worker, commands);
         }
@@ -183,7 +194,6 @@ class Libp2pNode<T=Libp2p, U=Libp2pOptions>
 }
 
 class Libp2pNodeCommandPlane<T=Libp2p, U=Libp2pOptions>
-    extends BaseNodeCommandPlane<T, U>
     implements IBaseNodeCommandPlane<T, U>
 {
     public commands: Libp2pNodeCommandActions;
@@ -193,16 +203,14 @@ class Libp2pNodeCommandPlane<T=Libp2p, U=Libp2pOptions>
         worker: Libp2pNodeWorker<T, U>,
         commands?: Libp2pNodeCommandActions
     ) { 
-        super(
-            worker,
-            commands
-        );
 
-        this.commands = commands ? commands : new Libp2pNodeCommandActions([]);
+        this.commands = commands ? commands : new Libp2pNodeCommandActions();
         this.worker = worker;
     }
 
-    public run(processId: BaseNodeCommand['processId']): BaseNodeResponse<any> {
+    public async run (processId: BaseNodeCommand['processId'], 
+        options?: BaseNodeCommandOption): Promise<BaseNodeResponse<any>> 
+    {
         let command: BaseNodeCommand; 
 
         if (processId) {
@@ -215,28 +223,39 @@ class Libp2pNodeCommandPlane<T=Libp2p, U=Libp2pOptions>
             );
         }
 
-        this.execute(command).then( (response) => {
-            command.setOutput(response);
-        });
+        if (!command) {
+            return new BaseNodeResponse<any>(
+                400,
+                new BaseNodeStatus(BaseNodeStatuses.ERROR, 'Command Not Found')
+            );
+        }
+        else {
+            const response: BaseNodeResponse<any> = await this.execute(command);
+            command.setOutput(response as BaseNodeResponse<any>);
+            return command.output as BaseNodeResponse<any>;
+        }
 
-        return command.output ? command.output : new BaseNodeResponse(
-            400,
-            new BaseNodeStatus(BaseNodeStatuses.ERROR, 'Command Not Found')
-        ) 
     }
 
-    public execute = async (command: BaseNodeCommand): Promise<BaseNodeResponse<any>> => {
+    public execute = async (command: BaseNodeCommand, processId?: string): Promise<BaseNodeResponse<any>> => {
         let response;
 
-        const worker = this.worker.worker as Libp2p<ServiceMap>;
+        let worker = this.worker.instance as Libp2p;
+        console.log('[Libp2pNodeCommandPlane] execute: worker: ', worker);
 
-        switch (command.process.action) {
+        console.log('[Libp2pNodeCommandPlane] execute: command: ', command, worker);
+
+        const processID = processId ? processId : command.process.action;
+        console.log(`[Libp2pNodeCommandPlane] execute: processID: ${processID}`);
+
+        switch (processID) {
             case "id":
-                const peerId: string = worker.peerId.toString()
+                const peerId: PeerId = worker.peerId
+                console.log(`[Libp2pNodeCommandPlane] execute: peerId: ${peerId}`);
                 return new BaseNodeResponse(
                     BaseNodeResponseCode.SUCCESS,
                     new BaseNodeStatus(BaseNodeStatuses.DONE, 'Peer ID Listed'),
-                    new BaseNodeResponseObject<string>(peerId)
+                    new BaseNodeResponseObject<PeerId>(peerId)
                 );
             case 'dial':
                 const connection: Connection = await worker.dial(multiaddr(command.process.args[0]));
@@ -285,17 +304,58 @@ class Libp2pNodeCreateOptions<T=Libp2p, U=Libp2pOptions>
     extends BaseNodeCreateOptions<T, U>
     implements IBaseNodeCreateOptions<T, U>
 {
+    public id: BaseNodeId;
+    public type: BaseNodeType;
+    public worker: Libp2pNodeWorker<T, U>;
+    public commands: Libp2pNodeCommandPlane<T, U>;
+    public params: any[];
+    
     public constructor(
         id?: BaseNodeId,
+        type?: NodeInstanceTypes | BaseNodeType,
         worker?: Libp2pNodeWorker<T, U>,
-        commands?: Libp2pNodeCommandPlane<T, U>
+        commands?: Libp2pNodeCommandPlane<T, U> | Libp2pNodeCommandActions,
+        params?: any
     ) {
-        super(
-            id,
-            new BaseNodeType<T>(NodeInstanceTypes.LIBP2P),
-            worker,
-            commands
-        );
+        super();
+        if (id) {
+            this.id = id;
+        }
+        else {
+            this.id = new BaseNodeId(
+                createRandomId()
+            );
+        }
+
+        if (!params) { this.params = []; } else { this.params = params; }
+
+        if (type instanceof BaseNodeType) {
+            this.type = type;
+        }
+        else if (typeof type === 'string') {
+            this.type = new BaseNodeType(type);
+        }
+        else {
+            this.type = new BaseNodeType();
+        }
+
+        if (worker) {
+            this.worker = worker;
+        }
+        else {
+            this.worker = new Libp2pNodeWorker<T, U>();
+        }
+
+        if (commands instanceof Libp2pNodeCommandPlane) {
+            this.commands = commands;
+        }
+        else if (commands instanceof Libp2pNodeCommandActions) {
+            this.commands = new Libp2pNodeCommandPlane<T, U>(this.worker, commands);
+        }
+        else {
+            this.commands = new Libp2pNodeCommandPlane<T, U>(this.worker);
+        }
+
     }
 }
 
@@ -317,11 +377,11 @@ class Libp2pNodesManager<T=Libp2p, U=Libp2pOptions>
     implements IBaseNodesManager<T, U>
 {
     public constructor(
-        nodes?: Map<BaseNodeId, Libp2pNode<T, U>>,
+        nodes?: Map<BaseNodeId['id'], Libp2pNode<T, U>>,
         options?: Libp2pNodeManagerOptions<T, U>
     ) {
         super({
-            nodes: nodes ? nodes : new Map<BaseNodeId, Libp2pNode<T, U>>(),
+            nodes: nodes ? nodes : new Map<BaseNodeId['id'], Libp2pNode<T, U>>(),
             options: options ? options : new Libp2pNodeManagerOptions<T, U>()
         });
     }
@@ -332,22 +392,26 @@ class Libp2pNodesManager<T=Libp2p, U=Libp2pOptions>
         options = options ? options : new Libp2pNodeCreateOptions<T, U>();
         this.options.add(options);
 
-        const libp2pOptions: Libp2pOptions = options.worker.worker ? options.worker.worker : defaultLibp2pConfig;
+        // const worker = options.worker.instance ? options.worker.instance : new Libp2pNodeWorker<T, U>(
+        //     undefined,
+        //     defaultLibp2pConfig as U
+        // )
 
-        const node: Libp2pNode<T, U> = new Libp2pNode<T, U>(
+        const node = new Libp2pNode<T, U>(
             options.id,
-            options.worker,
-            new BaseNodeStatus(BaseNodeStatuses.NEW, `${options.id}: New node created.`),
+            new BaseNodeStatus(BaseNodeStatuses.NEW, 'Node Created'),
             options.commands
         );
 
-        this.nodes.set(node.id, node);
+
+        this.nodes.set(node.id.id, node);
     }
 }
 
 export {
     Libp2pNode,
     Libp2pNodesManager,
+    Libp2pNodeManagerOptions,
     Libp2pNodeCreateOptions,
     Libp2pNodeCommandActions
 }

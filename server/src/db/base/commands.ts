@@ -108,7 +108,7 @@ interface IBaseNodeCommandPlane<T, U> {
     commands: IBaseNodeCommandActions;
     worker: IBaseNodeWorker<T, U>;
 
-    run(processId: IBaseNodeCommand['processId']): IBaseNodeResponse<any>;
+    run(processId: IBaseNodeCommand['processId']): Promise<IBaseNodeResponse<any>>;
     execute(command: IBaseNodeCommand): Promise<BaseNodeResponse<any>>;
 }
 
@@ -131,7 +131,7 @@ class BaseNodeCommandPlane<T, U>
         }
     }
 
-    public run(processId: BaseNodeCommand['processId']): BaseNodeResponse<any> {
+    public async run(processId: BaseNodeCommand['processId']): Promise<BaseNodeResponse<any>> {
 
         const command = this.commands.actions.get(processId);
 

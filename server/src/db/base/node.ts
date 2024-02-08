@@ -24,21 +24,32 @@ class BaseNodeId
 }
 
 interface IBaseNodeWorker<T, U> {
-    worker?: T;
+    instance?: T;
 
-    createWorker: (options?: U) => void;
+    createWorker: (options?: U) => Promise<T>;
 }
 
 class BaseNodeWorker<T, U>
     implements IBaseNodeWorker<T, U>
 {
-    public worker: T;
+    public instance?: T;
 
     public constructor(worker?: T, options?: U) {
-        this.worker = worker ? worker : this.createWorker(options);
+        if (worker) {
+            this.instance = worker;
+        }
+        else {
+            this.createWorker(options)
+                .then((worker: T) => {
+                    this.instance = worker;
+                })
+                .catch((error: Error) => {
+                    this.instance = {} as T;
+                });
+        }
     }
 
-    createWorker = (options?: U): T => {
+    createWorker = async (options?: U): Promise<T> => {
         return {} as T;
     }
 }
