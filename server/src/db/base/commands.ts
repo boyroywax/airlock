@@ -35,7 +35,6 @@ class BaseNodeCommandActions
         for (let action of actions) {
             this.add(action);
         }
-
     }
 
     public add(action: BaseNodeCommand): void {

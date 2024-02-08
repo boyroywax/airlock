@@ -50,7 +50,9 @@ class BaseNodeType
 {
     public type: NodeInstanceTypes;
 
-    public constructor(type?: NodeInstanceTypes | string) {
+    public constructor(
+        type?: NodeInstanceTypes | string
+    ) {
         if (typeof type === 'string') {
             this.type = NodeInstanceTypes[type as keyof typeof NodeInstanceTypes];
         }

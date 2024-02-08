@@ -54,7 +54,10 @@ import {
     BaseNodeResponseCode,
     BaseNodeResponseObject
 } from "./base/index.js";
-import { createRandomId } from "../utils/index.js";
+
+import {
+    createRandomId
+} from "../utils/index.js";
 
 class Libp2pNodeCommandActions
     extends BaseNodeCommandActions
@@ -109,7 +112,7 @@ class Libp2pNodeCommandActions
         ] as Array<BaseNodeCommand>;
         
         super(defaultActions)
-        console.log(`[Libp2pNodeCommandActions] constructor: actions: ${this.all()}`);
+        console.log(`[Libp2pNodeCommandActions] constructor: actions: ${this.all().toString()}`);
     }
 }
 
@@ -126,7 +129,6 @@ class Libp2pNodeWorker<T=Libp2p<ServiceMap>, U=Libp2pOptions>
             this.instance = worker;
         }
         else {
-
             this.createWorker(options).then((worker: T) => {
                 this.instance = worker;
             });
@@ -194,18 +196,19 @@ class Libp2pNode<T=Libp2p, U=Libp2pOptions>
 }
 
 class Libp2pNodeCommandPlane<T=Libp2p, U=Libp2pOptions>
+    extends BaseNodeCommandPlane<T, U>
     implements IBaseNodeCommandPlane<T, U>
 {
-    public commands: Libp2pNodeCommandActions;
-    public worker: Libp2pNodeWorker<T, U>;
+    // public commands: Libp2pNodeCommandActions;
+    // public worker: Libp2pNodeWorker<T, U>;
 
     public constructor(
         worker: Libp2pNodeWorker<T, U>,
         commands?: Libp2pNodeCommandActions
     ) { 
-
-        this.commands = commands ? commands : new Libp2pNodeCommandActions();
-        this.worker = worker;
+        commands = commands ? commands : new Libp2pNodeCommandActions();
+        worker = worker;
+        super(worker, commands)
     }
 
     public async run (processId: BaseNodeCommand['processId'], 
