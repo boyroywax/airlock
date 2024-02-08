@@ -5,24 +5,10 @@ import { OrbitDB, Database } from '@orbitdb/core';
 
 import { IHeliaNodeOptions } from './helia.js';
 import { IOrbitDBNodeOptions, IOrbitDBOptions } from './orbitdb.js';
-
-// import {
-//     OrbitDBNodeCommand,
-//     OrbitDBNodeCommands
-// } from '../db/orbitdb/commands.js';
-
-// import {
-//     Libp2pCommands,
-//     Libp2pNodeCommand
-// } from '../db/libp2p.js';
-
-import {
-    // IPFSNode,
-    Libp2pNode,
-    // OrbitDBNode
-} from '../db/index.js';
-
-// import { OpenDBCommands } from '../db/open/commands.js';
+import { OrbitDBNodeCommand, OrbitDBNodeCommands } from '../db/orbitdb/commands.js';
+import { Libp2pCommands, Libp2pNodeCommand } from '../db/libp2p/commands.js';
+import { IPFSNode, Libp2pNode, OrbitDBNode } from '../db/index.js';
+import { OpenDBCommands } from '../db/open/commands.js';
 
 /**
  * @constant NodeInstanceTypes
@@ -133,8 +119,7 @@ interface INodeActionResponse {
 }
 
 interface INodeCommandPlane {
-    // nodeWorker: INode | IPFSNode | OrbitDBNode | Libp2pNode;
-    nodeWorker: INode | Libp2pNode;
+    nodeWorker: INode | IPFSNode | OrbitDBNode | Libp2pNode;
 
     execute: (command: INodeCommand | any) => Promise<INodeCommandResponse>
 }
@@ -153,8 +138,7 @@ interface IOpenDBCommandPlane {
  * @property {IOrbitDBOptions | any} args - The arguments for the command
  */
 interface INodeCommand {
-    // command: string | Libp2pCommands | OrbitDBNodeCommands | OpenDBCommands | any;
-    command: string | any;
+    command: string | Libp2pCommands | OrbitDBNodeCommands | OpenDBCommands | any;
     args: IOrbitDBOptions | string[];
 }
 

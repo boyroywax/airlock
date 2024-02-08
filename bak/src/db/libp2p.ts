@@ -132,7 +132,7 @@ class Libp2pNodeWorker<T=Libp2p<ServiceMap>, U=Libp2pOptions>
         if (!options) {
             options = defaultLibp2pConfig as U;
         }
-        let libp2p: T | undefined;
+        let libp2p: T | undefined = undefined;
         try {
             createLibp2p(options as Libp2pOptions)
             .then( (node: Libp2p) => {
@@ -140,13 +140,13 @@ class Libp2pNodeWorker<T=Libp2p<ServiceMap>, U=Libp2pOptions>
             }) as T;
         }
         catch (error) {
-            console.error(`[Libp2pNodeWorker] createWorker: ${error}`);
+            throw console.error(`[Libp2pNodeWorker] createWorker: ${error}`);
         }
 
         if (!libp2p) {
-            console.error(`[Libp2pNodeWorker] createWorker: libp2p not created.`);
+            throw console.error(`[Libp2pNodeWorker] createWorker: libp2p not created.`);
         }
-        return libp2p as T;
+        return libp2p;
         
         
     }
@@ -170,15 +170,7 @@ class Libp2pNode<T=Libp2p, U=Libp2pOptions>
             status,
             commands
         );
-        if (commands instanceof Libp2pNodeCommandActions) {
-            this.commands = new Libp2pNodeCommandPlane<T, U>(worker, commands);
-        }
-        else if (commands instanceof Libp2pNodeCommandPlane) {
-            this.commands = commands;
-        }
-        else {
-            this.commands = new Libp2pNodeCommandPlane<T, U>(worker);
-        }
+        this.commands = commands instanceof Libp2pNodeCommandActions ? new Libp2pNodeCommandPlane<T, U>(worker, commands) : commands as Libp2pNodeCommandPlane<T, U>;
     }
 }
 

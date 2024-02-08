@@ -18,7 +18,7 @@ const libp2pNodesManager: Libp2pNodesManager = initDefaultLibp2pNode();
  * @summary This function returns the active libp2p node instance,
  *          if the node is not found, it will return an error
  */
-const activeNode = async (id: Libp2pNode['id']): Promise<Libp2pNode | BaseNodeResponse<any>> => {
+const activeNode = async (id: Libp2pNode['id']): Promise<Libp2pNode | BaseNodeResponse> => {
     const libp2pNode = libp2pNodesManager.get(id);
     if (libp2pNode instanceof Libp2pNode) {
         return libp2pNode;

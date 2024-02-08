@@ -133,7 +133,7 @@ interface IBaseNodesManager<T, U> {
     options: IBaseNodeManagerOptions<T, U>;
 
     create(options?: IBaseNodeCreateOptions<T, U>): void;
-    get(id: IBaseNodeId): IBaseNode<T, U> | undefined;
+    get(id: IBaseNodeId): IBaseNode<T, U>;
     list(): IBaseNodeId[];
     delete(id: IBaseNodeId): void;
 }
@@ -180,14 +180,14 @@ class BaseNodesManager<T, U>
         this.nodes.set(node.id, node);
     }
 
-    public get(id: BaseNodeId): BaseNode<T, U> | undefined {
+    public get(id: BaseNodeId): BaseNode<T, U> {
         const activeNode: BaseNode<T, U> | undefined = this.nodes.get(id);
 
         if (activeNode) {
             return activeNode;
         }
         else {
-            console.error(`Node with id ${id} not found.`);
+            throw new Error(`${id}: Node not found.`);
         }
     }
 

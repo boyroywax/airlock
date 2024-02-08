@@ -23,17 +23,14 @@ const initDefaultLibp2pNode = (
     options?: Libp2pNodeCreateOptions<Libp2p, Libp2pOptions>
 ): Libp2pNodesManager => {
     const manager = new Libp2pNodesManager();
+    manager.create(options);
 
-    if (options) {
-        manager.create(options);
-    }
-    else {
-        const options = new Libp2pNodeCreateOptions<Libp2p, Libp2pOptions>({
-            id: 'abcd123',
-        });
-        manager.create(options);
-    }
+    const connections = manager.get(
+        new BaseNodeId('abcd123'))
+        .commands
+        .run('connections:list');
 
+    console.log(`[initDefaultLibp2pNode] manager: ${connections}`)
     return manager;
 }
 

@@ -2,17 +2,14 @@ import express from 'express';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 
-import {
-    libp2pRouter,
-    metricsRouter,
-    // ipfsRouter,
-    // orbitdbRouter
-} from './routes/index.js';
+import { libp2pRouter, metricsRouter, ipfsRouter, orbitdbRouter } from './routes/index.js';
+import { BaseNode } from '../db/base/node.js';
+import { BaseNodesManager } from '../db/base/manager.js';
 
 const defaultRouters = [
     libp2pRouter,
-    // ipfsRouter,
-    // orbitdbRouter,
+    ipfsRouter,
+    orbitdbRouter,
     metricsRouter
 ]
 
@@ -22,11 +19,11 @@ class ApiServerOptions {
     public routers: express.Router[];
 
     public constructor(
-        routers?: express.Router[],
-        port?: number
+        routers: express.Router[] = defaultRouters,
+        port: number = 3000
     ) {
-        this.port = port ? port : 3000;
-        this.routers = routers ? routers : defaultRouters;
+        this.port = port;
+        this.routers = routers;
     }
 }
 
@@ -75,11 +72,11 @@ class ApiServer {
         const specs = swaggerJsdoc(options);
 
         this.app.use(express.json());
-        this.app.use('/api/v0', metricsRouter, libp2pRouter);
-        this.app.use('/api/v0/docs', swaggerUi.serve)
-        this.app.get('/api/v0/docs', swaggerUi.setup(specs, { explorer: true }))
 
+        this.app.use('/api/docs', swaggerUi.serve)
+        this.app.get('/api/docs', swaggerUi.setup(specs, { explorer: true }))
 
+        this.app.use('/api/v0', this.routers);
     }
 
     public start() {
