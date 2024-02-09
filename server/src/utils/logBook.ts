@@ -236,19 +236,21 @@ const logBookManager = new LogBooksManager();
 
 const logger = ({
     level,
+    code,
     component,
     message,
     workerId
 }: {
     level?: LogLevel,
     message: string,
+    code?: ResponseCode,
     component?: Component,
     workerId?: INode['id']
 }) => { 
     const logBook = logBookManager.get(component ? component : Component.SYSTEM);
     const entry: LogEntry = {
         level: level ? level : LogLevel.INFO,
-        code: ResponseCode.UNKNOWN,
+        code: code ? code : ResponseCode.UNKNOWN,
         timestamp: new Date(),
         message: message,
         workerId: workerId ? workerId : 'None',

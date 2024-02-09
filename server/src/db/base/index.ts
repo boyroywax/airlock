@@ -1,18 +1,13 @@
 export {
-    IBaseCommandActions,
-    BaseCommandActions,
-    IBaseCommandOption,
-    BaseCommandOption,
+    IBaseCommand,
     BaseCommand,
-    IBaseCommandPlane,
-    BaseCommandPlane
+    IBaseCommandProperties,
+    BaseCommandProperties
 } from './commands.js';
 
 export {
     IBaseId,
     BaseId,
-    IBaseWorker,
-    BaseWorker,
     BaseStatuses,
     IBaseStatus,
     BaseStatus
@@ -28,7 +23,6 @@ export {
 export {
     IBaseResponseObject,
     BaseResponseObject,
-    BaseResponseCode,
     IBaseResponse,
     BaseResponse
 } from './responses.js';

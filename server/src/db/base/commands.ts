@@ -1,15 +1,12 @@
 import {
-    createRandomId
+    LogLevel
+} from '../../models/constants.js';
+
+import {
+    createRandomId,
+    logger
 } from '../../utils/index.js';
 
-import {
-    BaseStatus,
-    BaseStatuses
-} from './node.js';
-
-import {
-    BaseResponse,
-} from './responses.js';
 
 /**
  * @interface IBaseCommandProperties
@@ -57,23 +54,52 @@ class BaseCommandProperties
     }
 }
 
+
+/**
+ * @interface IBaseCommandResponse
+ * @description Base Node Command Response Interface
+ * @member output: T
+ */
+interface IBaseCommandResponse<T> {
+    output: T;
+}
+
+
+/**
+ * @class BaseCommandResponse
+ * @description Base Node Command Response
+ * @implements IBaseCommandResponse
+ * @member output: T - The command output
+ */
+class BaseCommandResponse<T>
+    implements IBaseCommandResponse<T>
+{
+    public output: T;
+
+    public constructor(output: T) {
+        this.output = output;
+    }
+}
+
+
 /**
  * @interface IBaseCommand
  * @description Base Node Command Interface
  * @member process: IBaseCommandProperties
  * @member processId?: string
  * @member output?: IBaseResponse<any>
- * @method execute(): Promise<IBaseResponse<any>>
- * @method setOutput(output: IBaseResponse<any>): void
+ * @method execute(): Promise<IBaseCommandResponse<any>>
+ * @method setOutput(output: IBaseCommandResponse<any>): void
  */
 interface IBaseCommand {
     process: BaseCommandProperties;
     processId: string;
-    output?: BaseResponse<any>;
+    output?: BaseCommandResponse<any>;
 
-    execute(): Promise<BaseResponse<any>>;
-    setOutput(output: BaseResponse<any>): void;
+    execute(): Promise<BaseCommandResponse<any>>;
+    setOutput(output: BaseCommandResponse<any>): void;
 }
+
 
 /**
  * @class BaseCommand
@@ -81,16 +107,16 @@ interface IBaseCommand {
  * @implements IBaseCommand
  * @member process: BaseCommandProperties - The command, action, and arguments
  * @member processId?: string - The process ID
- * @member output?: BaseResponse<any> - The command output
- * @method execute(): Promise<BaseResponse<any>> - Execute the command
- * @method setOutput(output: BaseResponse<any>): void - Set the command output
+ * @member output?: BaseCommandResponse<any> - The command output
+ * @method execute(): Promise<BasecommandResponse<any>> - Execute the command
+ * @method setOutput(output: BaseCommandResponse<any>): void - Set the command output
  */
 class BaseCommand
     implements IBaseCommand
 {
     public process: BaseCommandProperties;
     public processId: string;
-    public output?: BaseResponse<any>;
+    public output?: BaseCommandResponse<any>;
 
     public constructor(
         command: BaseCommandProperties,
@@ -105,37 +131,37 @@ class BaseCommand
      * @returns Promise<BaseResponse<any>>
      * @description Execute the command
      */
-    public async execute(): Promise<BaseResponse<any>> {
-        let response: BaseResponse<any> = new BaseResponse(
-            400,
-            new BaseStatus(BaseStatuses.ERROR, 'Command Not Found')
-        );
+    public async execute(): Promise<BaseCommandResponse<any>> {
+        let response: BaseCommandResponse<any> = new BaseCommandResponse<string>('Command Not Implemented');
 
         this.process.call(this.process.args, this.process.kwargs).then( (result: any) => {
-            response = new BaseResponse(
-                200,
-                new BaseStatus(BaseStatuses.DONE, 'Command Executed', result)
-            );
+            response = new BaseCommandResponse<typeof result>(result);
         }).catch( (error: Error) => {
-            response = new BaseResponse(
-                500,
-                new BaseStatus(BaseStatuses.ERROR, 'Command Failed', error)
-            );
+            response = new BaseCommandResponse<any>(error);
         });
+
+        logger({
+            level: LogLevel.INFO,
+            message: `Command ${this.process.action} executed with processId: ${this.processId}\n Output: ${response.output}`
+        })
+        this.setOutput(response);
+
         return response;
     }
 
     /**
      * @function setOutput
-     * @param output: BaseResponse<any>
+     * @param output: BaseCommandResponse<any>
      * @description Set the command output
      */
-    public setOutput(output: BaseResponse<any>): void {
+    public setOutput(output: BaseCommandResponse<any>): void {
         this.output = output;
     }
 }
 
 export {
+    IBaseCommandResponse,
+    BaseCommandResponse,
     IBaseCommand,
     BaseCommand,
     IBaseCommandProperties,
