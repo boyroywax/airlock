@@ -1,24 +1,18 @@
 import {
-    BaseNodeStatus,
-    IBaseNodeStatus
+    BaseStatus,
+    IBaseStatus
 } from './node.js'
 
-enum BaseNodeResponseCode {
-    SUCCESS = 200,
-    BAD_REQUEST = 400,
-    UNAUTHORIZED = 401,
-    FORBIDDEN = 403,
-    NOT_FOUND = 404,
-    INTERNAL_SERVER_ERROR = 500,
-    SERVICE_UNAVAILABLE = 503,
-}
+import {
+    ResponseCodes
+} from '../../models/logs.js'
 
-interface IBaseNodeResponseObject<T> {
+interface IBaseResponseObject<T> {
     object: T;
 }
 
-class BaseNodeResponseObject<T>
-    implements IBaseNodeResponseObject<T>
+class BaseResponseObject<T>
+    implements IBaseResponseObject<T>
 {
     object: T;
 
@@ -27,23 +21,23 @@ class BaseNodeResponseObject<T>
     }
 }
 
-interface IBaseNodeResponse<T> {
-    code: BaseNodeResponseCode;
-    status: IBaseNodeStatus;
-    output?: IBaseNodeResponseObject<T>;
+interface IBaseResponse<T> {
+    code: ResponseCodes;
+    status: IBaseStatus;
+    output?: IBaseResponseObject<T>;
 }
 
-class BaseNodeResponse<T>
-    implements IBaseNodeResponse<T>
+class BaseResponse<T>
+    implements IBaseResponse<T>
 {
-    code: BaseNodeResponseCode;
-    status: BaseNodeStatus;
-    output?: BaseNodeResponseObject<T>;
+    code: ResponseCodes;
+    status: BaseStatus;
+    output?: BaseResponseObject<T>;
 
     constructor(
-        code: BaseNodeResponseCode,
-        status: BaseNodeStatus,
-        output?: BaseNodeResponseObject<T>,
+        code: ResponseCodes,
+        status: BaseStatus,
+        output?: BaseResponseObject<T>,
     ) {
         this.code = code;
         this.status = status;
@@ -52,9 +46,8 @@ class BaseNodeResponse<T>
 }
 
 export {
-    IBaseNodeResponseObject,
-    BaseNodeResponseObject,
-    BaseNodeResponseCode,
-    IBaseNodeResponse,
-    BaseNodeResponse
+    IBaseResponseObject,
+    BaseResponseObject,
+    IBaseResponse,
+    BaseResponse
 }

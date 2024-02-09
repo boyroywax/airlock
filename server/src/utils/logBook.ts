@@ -1,28 +1,68 @@
 
-import { INode } from "../models/node.js";
-import { INodeLogEntry, INodeLogBook, LogBookNames } from "../models/logs.js";
+import {
+    Component,
+    ResponseCode,
+    LogLevel
+} from "../models/index.js";
+
+import {
+    INode
+} from "../models/node.js";
+
+import {
+    ILogEntry,
+    ILogBook
+} from "../models/logs.js";
+
+class LogEntry
+    implements ILogEntry
+{
+    public level: LogLevel;
+    public code: ResponseCode;
+    public timestamp: Date;
+    public message: string;
+    public workerId: INode['id'];
+
+    public constructor({
+        level,
+        message,
+        code,
+        workerId
+    }: {
+        level?: LogLevel,
+        message: string,
+        code?: ResponseCode,
+        workerId?: INode['id'],
+    }) {
+        this.level = level ? level : LogLevel.INFO;
+        this.code = code ? code : ResponseCode.UNKNOWN;
+        this.timestamp = new Date();
+        this.message = message;
+        this.workerId = workerId ? workerId : 'None';
+    }
+}
 
 /**
  * @class LogBook
- * @implements INodeLogBook
+ * @implements ILogBook
  * @description A class to manage an individual log book
  */
-class LogBook implements INodeLogBook {
-    public name: LogBookNames;
-    public history: Map<number, INodeLogEntry>;
+class LogBook implements ILogBook {
+    public name: string;
+    public history: Map<number, LogEntry>;
 
-    public constructor(name: LogBookNames) {
+    public constructor(name: string) {
         this.name = name
-        this.history = new Map<number, INodeLogEntry>();
+        this.history = new Map<number, LogEntry>();
     }
 
     /**
      * @function add
-     * @param entry : INodeLogEntry - The entry to add to the log book
+     * @param entry : ILogEntry - The entry to add to the log book
      * @returns void
      * @description Adds an entry to the log book
      */
-    public add(entry: INodeLogEntry):  void {
+    public add(entry: LogEntry):  void {
         const counter = this.history.size + 1;
         this.history.set(counter, entry);
     }
@@ -30,11 +70,11 @@ class LogBook implements INodeLogBook {
     /**
      * @function get
      * @param entryId : number - The id of the entry to get
-     * @returns INodeLogEntry - The entry
+     * @returns ILogEntry - The entry
      * @description Gets an entry from the log book
      */
-    public get(entryId: number): INodeLogEntry {
-        const entry: INodeLogEntry | undefined = this.history.get(entryId);
+    public get(entryId: number): LogEntry {
+        const entry: LogEntry | undefined = this.history.get(entryId);
         if (entry) {
             return entry;
         }
@@ -55,10 +95,10 @@ class LogBook implements INodeLogBook {
 
     /**
      * @function getAll
-     * @returns Map<number, INodeLogEntry> - A map of all the entries
+     * @returns Map<number, ILogEntry> - A map of all the entries
      * @description Returns a map of all the entries
      */
-    public getAll(): Map<number, INodeLogEntry> {
+    public getAll(): Map<number, ILogEntry> {
         return this.history;
     }
 
@@ -68,16 +108,16 @@ class LogBook implements INodeLogBook {
      * @description Clears the entire log book
      */
     public clear(): void {
-        this.history = new Map<number, INodeLogEntry>();
+        this.history = new Map<number, LogEntry>();
     }
 
     /**
      * @function getLastEntries
      * @param count : number = 1 - The number of entries to return
-     * @returns Map<number, INodeLogEntry> - A map of the last entries
+     * @returns Map<number, ILogEntry> - A map of the last entries
      */
-    public getLastEntries(count: number = 1): Map<number, INodeLogEntry> {
-        const lastEntries: Map<number, INodeLogEntry> = new Map<number, INodeLogEntry>();
+    public getLastEntries(count: number = 1): Map<number, LogEntry> {
+        const lastEntries: Map<number, LogEntry> = new Map<number, LogEntry>();
         const historyArray = Array.from(this.history);
         const lastEntriesArray = historyArray.slice(-count);
         lastEntriesArray.forEach((entry) => {
@@ -89,12 +129,12 @@ class LogBook implements INodeLogBook {
     /**
      * @function getWorkerHistory
      * @param workerId : INode['id'] - The worker id to get the history for
-     * @returns Map<number, INodeLogEntry> - A map of the history for the worker
+     * @returns Map<number, ILogEntry> - A map of the history for the worker
      * @description Returns a map of the history for the worker
      * 
      */
-    public getWorkerHistory(workerId: INode['id']): Map<number, INodeLogEntry> {
-        const workerHistory: Map<number, INodeLogEntry> = new Map<number, INodeLogEntry>();
+    public getWorkerHistory(workerId: INode['id']): Map<number, LogEntry> {
+        const workerHistory: Map<number, LogEntry> = new Map<number, LogEntry>();
         this.history.forEach((entry, key) => {
             if (entry.workerId === workerId) {
                 workerHistory.set(key, entry);
@@ -113,10 +153,11 @@ class LogBooksManager {
     public logBooks: Map<string, LogBook> = new Map<string, LogBook>();
 
     public constructor() {
-        this.create(LogBookNames.DB);
-        this.create(LogBookNames.IPFS);
-        this.create(LogBookNames.LIBP2P);
-        this.create(LogBookNames.ORBITDB);
+        this.create(Component.DB);
+        this.create(Component.IPFS);
+        this.create(Component.LIBP2P);
+        this.create(Component.ORBITDB);
+        this.create(Component.SYSTEM);
     }
 
     /**
@@ -126,7 +167,7 @@ class LogBooksManager {
      * @description Creates a new log book and adds it to the collection
      */
     public create(
-        logBookName: LogBookNames
+        logBookName: Component
     ) {
         const newLogBook = new LogBook(logBookName);
         this.logBooks.set(newLogBook.name, newLogBook);
@@ -135,10 +176,11 @@ class LogBooksManager {
     /**
      * @function get
      * @param logBookName  : LogBookNames - The name of the log book to get
-     * @returns 
+     * @returns LogBook - The log book
+     * @description Gets a log book from the collection
      */
     public get(
-        logBookName: LogBookNames
+        logBookName: Component
     ): LogBook {
         const logBook: LogBook | undefined = this.logBooks.get(logBookName);
         if (logBook) {
@@ -156,7 +198,7 @@ class LogBooksManager {
      * @description Deletes a log book from the collection
      */
     public delete(
-        logBookName: LogBookNames
+        logBookName: Component
     ) {
         this.logBooks.delete(logBookName);
     }
@@ -189,10 +231,52 @@ class LogBooksManager {
     }
 }
 
-const logger = new LogBooksManager();
 
-const getLogBook = (logBookName: LogBookNames): LogBook => {
-    return logger.get(logBookName);
+const logBookManager = new LogBooksManager();
+
+const logger = ({
+    level,
+    component,
+    message,
+    workerId
+}: {
+    level?: LogLevel,
+    message: string,
+    component?: Component,
+    workerId?: INode['id']
+}) => { 
+    const logBook = logBookManager.get(component ? component : Component.SYSTEM);
+    const entry: LogEntry = {
+        level: level ? level : LogLevel.INFO,
+        code: ResponseCode.UNKNOWN,
+        timestamp: new Date(),
+        message: message,
+        workerId: workerId ? workerId : 'None',
+    }
+    logBook.add(entry);
+    
+    switch (level) {
+        case LogLevel.ERROR:
+            console.error(`[${entry.timestamp}] [${component ? component : 'SYSTEM'}] ${message}`);
+            break;
+        case LogLevel.WARN:
+            console.warn(`[${entry.timestamp}] [${component ? component : 'SYSTEM'}] ${message}`);
+            break;
+        case LogLevel.INFO:
+            console.info(`[${entry.timestamp}] [${component ? component : 'SYSTEM'}] ${message}`);
+            break;
+        case LogLevel.DEBUG:
+            console.debug(`[${entry.timestamp}] [${component ? component : 'SYSTEM'}] ${message}`);
+            break;
+        default:
+            console.log(`[${entry.timestamp}] [${component ? component : 'SYSTEM'}] ${message}`);
+            break;
+    }
+}
+
+    
+const getLogBook = (logBookName: Component): LogBook => {
+    return logBookManager.get(logBookName);
 }
 
 export {

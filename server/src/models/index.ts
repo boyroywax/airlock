@@ -1,7 +1,7 @@
 import {
-    INodeLogBook,
-    INodeLogEntry,
-    LogBookNames
+    ILogBook,
+    ILogEntry,
+    ILogBooksManager
 } from "./logs";
 
 import {
@@ -30,7 +30,6 @@ import {
     IOpenDBOptions
 } from "./orbitdb";
 
-
 import {
     Libp2pBaseRequest,
     IPFSBaseRequest,
@@ -39,7 +38,17 @@ import {
     OrbitDBCreateRequest
 } from "./api";
 
+import {
+    Component,
+    ResponseCode,
+    LogLevel
+} from "./constants";
+
 export {
+    // Constants
+    Component,
+    ResponseCode,
+    LogLevel,
     // Network & IPFS Nodes and Managers
     INode,
     INodeActionResponse,
@@ -63,6 +72,8 @@ export {
     INodeCommandPlane,
     INodeCommand,
     INodeCommandResponse,
-    INodeLogBook,
-    INodeLogEntry
+    // Logging
+    ILogBook,
+    ILogEntry,
+    ILogBooksManager
 }

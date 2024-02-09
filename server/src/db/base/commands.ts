@@ -1,178 +1,143 @@
 import {
-    BaseNodeStatus,
-    BaseNodeStatuses,
-    BaseNodeWorker,
-    IBaseNodeWorker
+    createRandomId
+} from '../../utils/index.js';
+
+import {
+    BaseStatus,
+    BaseStatuses
 } from './node.js';
 
 import {
-    BaseNodeResponse,
-    BaseNodeResponseObject,
-    IBaseNodeResponse
+    BaseResponse,
 } from './responses.js';
 
-
-interface IBaseNodeCommandActions
-    extends Object
-{
-    actions: Map<IBaseNodeCommand['processId'], IBaseNodeCommand>;
-
-    add(action: IBaseNodeCommand): void;
-    remove(processId: IBaseNodeCommand['processId']): void;
-    all(): IBaseNodeCommand[];
-}
-
-class BaseNodeCommandActions
-    implements IBaseNodeCommandActions
-{
-    public actions: Map<BaseNodeCommand['processId'], BaseNodeCommand>;
-
-    public constructor(
-        actions: BaseNodeCommand[]
-    ) {
-        this.actions = new Map<BaseNodeCommand['processId'], BaseNodeCommand>();
-
-        for (let action of actions) {
-            this.add(action);
-        }
-    }
-
-    public add(action: BaseNodeCommand): void {
-        this.actions.set(action.processId, action);
-    }
-
-    public remove(processId: BaseNodeCommand['processId']): void {
-        this.actions.delete(processId);
-    }
-
-    public all(): BaseNodeCommand[] {
-        return Array.from(this.actions.values());
-    }
-}
-
-interface IBaseNodeCommandOption {
+/**
+ * @interface IBaseCommandProperties
+ * @description Base Node Command Properties Interface
+ * @member action: string
+ * @member call: any
+ * @member args: string[]
+ * @member kwargs: {}
+ */
+interface IBaseCommandProperties {
     action: string;
+    call: any;
     args: string[];
-    kwargs: {};
+    kwargs: Object;
 }
 
-class BaseNodeCommandOption
-    implements IBaseNodeCommandOption
+
+/**
+ * @class BaseCommandProperties
+ * @description Base Node Command Properties
+ * @implements IBaseCommandProperties
+ * @member action: string - The command action
+ * @member call: any - The command call function or object
+ * @member args: string[] - The command arguments
+ * @member kwargs: {} - The command keyword arguments
+ */
+class BaseCommandProperties
+    implements IBaseCommandProperties
 {
     public action: string;
+    public call: any;
     public args: string[];
-    public kwargs: {};
+    public kwargs: Object; 
 
     public constructor(
         action: string,
+        call: any,
         args?: string[],
-        kwargs?: {}
+        kwargs?: Object
     ) {
         this.action = action;
+        this.call = call;
         this.args = args ? args : [];
-        this.kwargs = kwargs ? kwargs : {};
+        this.kwargs = kwargs ? kwargs : Object;
     }
 }
 
-interface IBaseNodeCommand {
+/**
+ * @interface IBaseCommand
+ * @description Base Node Command Interface
+ * @member process: IBaseCommandProperties
+ * @member processId?: string
+ * @member output?: IBaseResponse<any>
+ * @method execute(): Promise<IBaseResponse<any>>
+ * @method setOutput(output: IBaseResponse<any>): void
+ */
+interface IBaseCommand {
+    process: BaseCommandProperties;
     processId: string;
-    process: BaseNodeCommandOption;
-    output?: BaseNodeResponse<any>;
+    output?: BaseResponse<any>;
 
-    setOutput(output: BaseNodeResponse<any>): void;
+    execute(): Promise<BaseResponse<any>>;
+    setOutput(output: BaseResponse<any>): void;
 }
 
-class BaseNodeCommand
-    implements IBaseNodeCommand
+/**
+ * @class BaseCommand
+ * @description Base Node Command
+ * @implements IBaseCommand
+ * @member process: BaseCommandProperties - The command, action, and arguments
+ * @member processId?: string - The process ID
+ * @member output?: BaseResponse<any> - The command output
+ * @method execute(): Promise<BaseResponse<any>> - Execute the command
+ * @method setOutput(output: BaseResponse<any>): void - Set the command output
+ */
+class BaseCommand
+    implements IBaseCommand
 {
+    public process: BaseCommandProperties;
     public processId: string;
-    public process: BaseNodeCommandOption;
-    public output?: BaseNodeResponse<any>;
+    public output?: BaseResponse<any>;
 
     public constructor(
-        command: BaseNodeCommandOption,
+        command: BaseCommandProperties,
         processId?: string,
     ) {
-        this.processId = processId ? processId : '0';
+        this.processId = processId ? processId : createRandomId();
         this.process = command;
     }
 
-    public setOutput(output: BaseNodeResponse<any>): void {
-        this.output = output;
-    }
-
-}
-
-interface IBaseNodeCommandPlane<T, U> {
-    commands: IBaseNodeCommandActions;
-    worker: IBaseNodeWorker<T, U>;
-
-    run(processId: IBaseNodeCommand['processId']): Promise<IBaseNodeResponse<any>>;
-    execute(command: IBaseNodeCommand): Promise<BaseNodeResponse<any>>;
-}
-
-class BaseNodeCommandPlane<T, U>
-    implements IBaseNodeCommandPlane<T, U>
-{
-    public commands: BaseNodeCommandActions;
-    public worker: BaseNodeWorker<T, U>;
-
-    public constructor(
-        worker: BaseNodeWorker<T, U>,
-        commands?: BaseNodeCommandActions | BaseNodeCommand[]
-    ) {
-        this.worker = worker;
-        if (commands instanceof BaseNodeCommandActions) {
-            this.commands = commands;
-        }
-        else {
-            this.commands = new BaseNodeCommandActions(commands? commands : []);
-        }
-    }
-
-    public async run(processId: BaseNodeCommand['processId']): Promise<BaseNodeResponse<any>> {
-
-        const command = this.commands.actions.get(processId);
-
-        if (!command) {
-            return new BaseNodeResponse<any>(
-                400,
-                new BaseNodeStatus(BaseNodeStatuses.ERROR, 'Command Not Found')
-            );
-        }
-        // Execute the Command
-        this.execute(command).then ( (response) => {
-            command.setOutput(response as BaseNodeResponse<any>);
-        });
-
-        return command.output as BaseNodeResponse<any>;
-    }
-
-    public execute = async (command: BaseNodeCommand): Promise<BaseNodeResponse<any>> => {
-        let response: BaseNodeResponse<any> = new BaseNodeResponse(
+    /**
+     * @function execute
+     * @returns Promise<BaseResponse<any>>
+     * @description Execute the command
+     */
+    public async execute(): Promise<BaseResponse<any>> {
+        let response: BaseResponse<any> = new BaseResponse(
             400,
-            new BaseNodeStatus(BaseNodeStatuses.ERROR, 'Command Not Found')
+            new BaseStatus(BaseStatuses.ERROR, 'Command Not Found')
         );
 
-        switch (command.process.action) {
-            default:
-                response = new BaseNodeResponse(
-                    400,
-                    new BaseNodeStatus(BaseNodeStatuses.ERROR, 'Command Not Found')
-                );
-                break;
-        }
+        this.process.call(this.process.args, this.process.kwargs).then( (result: any) => {
+            response = new BaseResponse(
+                200,
+                new BaseStatus(BaseStatuses.DONE, 'Command Executed', result)
+            );
+        }).catch( (error: Error) => {
+            response = new BaseResponse(
+                500,
+                new BaseStatus(BaseStatuses.ERROR, 'Command Failed', error)
+            );
+        });
         return response;
+    }
+
+    /**
+     * @function setOutput
+     * @param output: BaseResponse<any>
+     * @description Set the command output
+     */
+    public setOutput(output: BaseResponse<any>): void {
+        this.output = output;
     }
 }
 
 export {
-    IBaseNodeCommandActions,
-    BaseNodeCommandActions,
-    IBaseNodeCommandOption,
-    BaseNodeCommandOption,
-    IBaseNodeCommand,
-    BaseNodeCommand,
-    IBaseNodeCommandPlane,
-    BaseNodeCommandPlane
+    IBaseCommand,
+    BaseCommand,
+    IBaseCommandProperties,
+    BaseCommandProperties,
 }

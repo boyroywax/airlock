@@ -1,21 +1,21 @@
 import {
-    IBaseNodeCommandActions,
-    BaseNodeCommandActions,
-    BaseNodeCommandPlane,
-    BaseNodeCommand,
-    IBaseNodeCommand,
-    IBaseNodeCommandPlane
+    IBaseCommandActions,
+    BaseCommandActions,
+    BaseCommandPlane,
+    BaseCommand,
+    IBaseCommand,
+    IBaseCommandPlane
 } from "./commands.js";
 
 import {
-    IBaseNode,
-    BaseNode,
-    IBaseNodeId,
-    IBaseNodeWorker,
-    BaseNodeStatuses,
-    BaseNodeStatus,
-    BaseNodeId,
-    BaseNodeWorker
+    IBase,
+    Base,
+    IBaseId,
+    IBaseWorker,
+    BaseStatuses,
+    BaseStatus,
+    BaseId,
+    BaseWorker
 } from "./node.js";
 
 import {
@@ -41,12 +41,12 @@ enum NodeInstanceTypes {
     UNDEFINED = 'undefined'
 }
 
-interface IBaseNodeType {
+interface IBaseType {
     type: NodeInstanceTypes;
 }
 
-class BaseNodeType
-    implements IBaseNodeType
+class BaseType
+    implements IBaseType
 {
     public type: NodeInstanceTypes;
 
@@ -62,67 +62,67 @@ class BaseNodeType
     }
 }
 
-interface IBaseNodeCreateOptions<T, U> {
-    id: IBaseNodeId;
-    type: IBaseNodeType;
-    worker: IBaseNodeWorker<T, U>;
-    commands: IBaseNodeCommandActions | IBaseNodeCommand[] | IBaseNodeCommandPlane<T, U>;
+interface IBaseCreateOptions<T, U> {
+    id: IBaseId;
+    type: IBaseType;
+    worker: IBaseWorker<T, U>;
+    commands: IBaseCommandActions | IBaseCommand[] | IBaseCommandPlane<T, U>;
     params: string[] | any[];
 }
 
-class BaseNodeCreateOptions<T, U>
-    implements IBaseNodeCreateOptions<T, U>
+class BaseCreateOptions<T, U>
+    implements IBaseCreateOptions<T, U>
 {
-    public id: BaseNodeId;
-    public type: BaseNodeType;
-    public worker: BaseNodeWorker<T, U>;
-    public commands: BaseNodeCommandPlane<T, U>;
+    public id: BaseId;
+    public type: BaseType;
+    public worker: BaseWorker<T, U>;
+    public commands: BaseCommandPlane<T, U>;
     public params: string[] | any[];
 
     public constructor(
-        id?: IBaseNodeId,
-        type?: BaseNodeType,
-        worker?: BaseNodeWorker<T, U>,
-        commands?: BaseNodeCommandActions | BaseNodeCommand[] | BaseNodeCommandPlane<T, U>,
+        id?: IBaseId,
+        type?: BaseType,
+        worker?: BaseWorker<T, U>,
+        commands?: BaseCommandActions | BaseCommand[] | BaseCommandPlane<T, U>,
         params?: string[]
     ) {
-        this.id = id ? id : new BaseNodeId(createRandomId());
-        this.type = type ? type: new BaseNodeType();
-        this.worker = worker ? worker : new BaseNodeWorker<T, U>();
+        this.id = id ? id : new BaseId(createRandomId());
+        this.type = type ? type: new BaseType();
+        this.worker = worker ? worker : new BaseWorker<T, U>();
         
-        if (commands instanceof BaseNodeCommandPlane) {
+        if (commands instanceof BaseCommandPlane) {
             this.commands = commands;
         }
-        else if (commands instanceof BaseNodeCommandActions) {
-            this.commands = new BaseNodeCommandPlane<T, U>(this.worker, commands);
+        else if (commands instanceof BaseCommandActions) {
+            this.commands = new BaseCommandPlane<T, U>(this.worker, commands);
         }
         else {
-            this.commands = new BaseNodeCommandPlane<T, U>(this.worker);
+            this.commands = new BaseCommandPlane<T, U>(this.worker);
         }
         this.params = params ? params : [];
     }
 }
 
-interface IBaseNodeManagerOptions<T, U> {
-    collection: Map<IBaseNodeId['id'], IBaseNodeCreateOptions<T, U>>;
+interface IBaseManagerOptions<T, U> {
+    collection: Map<IBaseId['id'], IBaseCreateOptions<T, U>>;
 
-    add(options?: IBaseNodeCreateOptions<T, U>): void;
-    remove(id: IBaseNodeId['id']): void;
-    list(): IBaseNodeId['id'][];
+    add(options?: IBaseCreateOptions<T, U>): void;
+    remove(id: IBaseId['id']): void;
+    list(): IBaseId['id'][];
 }
 
-class BaseNodeManagerOptions<T, U>
-    implements IBaseNodeManagerOptions<T, U>
+class BaseManagerOptions<T, U>
+    implements IBaseManagerOptions<T, U>
 {
-    public collection: Map<BaseNodeId['id'], BaseNodeCreateOptions<T, U>>;
+    public collection: Map<BaseId['id'], BaseCreateOptions<T, U>>;
 
-    public constructor(options?: BaseNodeCreateOptions<T, U>[]) {
-        this.collection = new Map<BaseNodeId['id'], BaseNodeCreateOptions<T, U>>(
-            options ? options.map((option: BaseNodeCreateOptions<T, U>) => [option.id.id, option]) : []
+    public constructor(options?: BaseCreateOptions<T, U>[]) {
+        this.collection = new Map<BaseId['id'], BaseCreateOptions<T, U>>(
+            options ? options.map((option: BaseCreateOptions<T, U>) => [option.id.id, option]) : []
         );
     }
 
-    public add(options?: BaseNodeCreateOptions<T, U>): void {
+    public add(options?: BaseCreateOptions<T, U>): void {
         if (options) {
             if (this.collection.has(options.id.id)) {
                 console.error(`Node Options with id ${options.id} already exists.`);
@@ -133,7 +133,7 @@ class BaseNodeManagerOptions<T, U>
         }
     }
 
-    public remove(id: BaseNodeId['id']): void {
+    public remove(id: BaseId['id']): void {
         this.collection.delete(id);
         return;
     }
@@ -144,47 +144,47 @@ class BaseNodeManagerOptions<T, U>
 }
 
 
-interface IBaseNodesManager<T, U> {
-    nodes: Map<BaseNodeId['id'], IBaseNode<T, U>>;
-    options: IBaseNodeManagerOptions<T, U>;
+interface IBasesManager<T, U> {
+    nodes: Map<BaseId['id'], IBase<T, U>>;
+    options: IBaseManagerOptions<T, U>;
 
-    create(options?: IBaseNodeCreateOptions<T, U>): void;
-    get(id: IBaseNodeId['id']): IBaseNode<T, U> | undefined;
-    list(): IBaseNodeId['id'][];
-    delete(id: IBaseNodeId['id']): void;
+    create(options?: IBaseCreateOptions<T, U>): void;
+    get(id: IBaseId['id']): IBase<T, U> | undefined;
+    list(): IBaseId['id'][];
+    delete(id: IBaseId['id']): void;
 }
 
 
 /**
- * @class BaseNodesManager
+ * @class BasesManager
  * @description The manager for base nodes
  * @summary The manager for base nodes
- * @implements IBaseNodesManager
+ * @implements IBasesManager
  * @template T - The type of the worker
  * @template U - The options type for the worker
  * 
  */
-class BaseNodesManager<T, U>
-    implements IBaseNodesManager<T, U>
+class BasesManager<T, U>
+    implements IBasesManager<T, U>
 {
-    public nodes: Map<BaseNodeId['id'], BaseNode<T, U>>;
-    public options: BaseNodeManagerOptions<T, U>;
+    public nodes: Map<BaseId['id'], Base<T, U>>;
+    public options: BaseManagerOptions<T, U>;
 
     public constructor({
         nodes,
         options
     }: {
-        nodes?: Map<BaseNodeId['id'], BaseNode<T, U>>,
-        options?: BaseNodeManagerOptions<T, U>
+        nodes?: Map<BaseId['id'], Base<T, U>>,
+        options?: BaseManagerOptions<T, U>
     }) {
-        this.nodes = nodes ? nodes : new Map<BaseNodeId['id'], BaseNode<T, U>>();
-        this.options = new BaseNodeManagerOptions<T, U>(options ? Array.from(options.collection.values()) : []);
+        this.nodes = nodes ? nodes : new Map<BaseId['id'], Base<T, U>>();
+        this.options = new BaseManagerOptions<T, U>(options ? Array.from(options.collection.values()) : []);
     }
 
-    public create(options?: BaseNodeCreateOptions<T, U>): void {
+    public create(options?: BaseCreateOptions<T, U>): void {
 
         if (!options) {
-            options = new BaseNodeCreateOptions<T, U>();
+            options = new BaseCreateOptions<T, U>();
             return;
         }
 
@@ -195,20 +195,20 @@ class BaseNodesManager<T, U>
             return;
         }
 
-        const node = new BaseNode<T, U>(
+        const node = new Base<T, U>(
             options.id,
             options.worker,
             {
-                status: BaseNodeStatuses.NEW,
+                status: BaseStatuses.NEW,
                 message: `${options.id}: New node created.`
-            } as BaseNodeStatus,
+            } as BaseStatus,
             options.commands,
         );
         this.nodes.set(node.id.id, node);
     }
 
-    public get(id: BaseNodeId['id']): BaseNode<T, U> | undefined {
-        const activeNode: BaseNode<T, U> | undefined = this.nodes.get(id);
+    public get(id: BaseId['id']): Base<T, U> | undefined {
+        const activeNode: Base<T, U> | undefined = this.nodes.get(id);
 
         if (activeNode) {
             return activeNode;
@@ -222,9 +222,9 @@ class BaseNodesManager<T, U>
         return Array.from(this.nodes.keys());
     }
 
-    public delete(id: BaseNodeId['id']): void {
+    public delete(id: BaseId['id']): void {
         // Get the node to delete
-        const node: BaseNode<T,U> | undefined = this.nodes.get(id);
+        const node: Base<T,U> | undefined = this.nodes.get(id);
         if (!node) {
             console.error(`Node with id ${id} not found.`);
             return;
@@ -238,14 +238,14 @@ class BaseNodesManager<T, U>
 
 
 export {
-    BaseNodesManager,
-    IBaseNodesManager,
-    BaseNodeCreateOptions,
-    IBaseNodeCreateOptions,
+    BasesManager,
+    IBasesManager,
+    BaseCreateOptions,
+    IBaseCreateOptions,
     NodeInstanceTypes,
-    BaseNodeType,
-    IBaseNodeManagerOptions,
-    BaseNodeManagerOptions,
+    BaseType,
+    IBaseManagerOptions,
+    BaseManagerOptions,
 }
 
 

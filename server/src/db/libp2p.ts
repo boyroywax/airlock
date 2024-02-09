@@ -217,7 +217,7 @@ class Libp2pNodeCommandPlane<T=Libp2p, U=Libp2pOptions>
         let command: BaseNodeCommand; 
 
         if (processId) {
-            command = this.commands.actions.get(processId) as BaseNodeCommand;
+            command = this.commands.commands.get(processId) as BaseNodeCommand;
         }
         else {
             command = new BaseNodeCommand(

@@ -1,45 +1,46 @@
-import { INode, INodeActionResponse } from './node.js';
+import {
+    INode,
+    INodeActionResponse
+} from './node.js';
 
+import {
+    Component,
+    ResponseCode,
+    LogLevel
+} from './constants.js';
 
-enum LogBooks {
-    DB = 'db',
-    IPFS = 'ipfs',
-    LIBP2P = 'libp2p',
-    ORBITDB = 'orbitdb',
-} 
-
-interface INodeLogEntry {
-    codes?: number[];
+interface ILogEntry {
+    level?: LogLevel;
+    code?: ResponseCode;
     timestamp: Date;
     message: string | INodeActionResponse;
-    workerId: INode['id'];
+    workerId?: INode['id'];
 }
 
-interface INodeLogBook {
-    name: LogBooks;
-    history: Map<number, INodeLogEntry>;
+interface ILogBook {
+    name: string;
+    history: Map<number, ILogEntry>;
 
-    add: (entry: INodeLogEntry) => void;
-    get: (id: number) => INodeLogEntry;
+    add: (entry: ILogEntry) => void;
+    get: (id: number) => ILogEntry;
     delete: (id: number) => void;
     clear: () => void;
-    getAll: () => Map<number, INodeLogEntry>;
-    getWorkerHistory: (workerId: INode['id']) => Map<number, INodeLogEntry>;
-    getLastEntries: (count: number) => Map<number, INodeLogEntry>;
+    getAll: () => Map<number, ILogEntry>;
+    getWorkerHistory: (workerId: INode['id']) => Map<number, ILogEntry>;
+    getLastEntries: (count: number) => Map<number, ILogEntry>;
 }
 
 interface ILogBooksManager {
-    books: Map<string, INodeLogBook>;
+    books: Map<string, ILogBook>;
 
-    create: (name: LogBooks) => void;
-    get: (name: LogBooks) => INodeLogBook;
-    delete: (name: LogBooks) => void;
+    create: (name: string) => void;
+    get: (name: string) => ILogBook;
+    delete: (name: string) => void;
     clear: () => void;
 }
 
 export {
-    INodeLogEntry,
-    INodeLogBook,
-    LogBooks as LogBookNames,
+    ILogEntry,
+    ILogBook,
     ILogBooksManager
 }

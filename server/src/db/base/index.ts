@@ -1,34 +1,34 @@
 export {
-    IBaseNodeCommandActions,
-    BaseNodeCommandActions,
-    IBaseNodeCommandOption,
-    BaseNodeCommandOption,
-    BaseNodeCommand,
-    IBaseNodeCommandPlane,
-    BaseNodeCommandPlane
+    IBaseCommandActions,
+    BaseCommandActions,
+    IBaseCommandOption,
+    BaseCommandOption,
+    BaseCommand,
+    IBaseCommandPlane,
+    BaseCommandPlane
 } from './commands.js';
 
 export {
-    IBaseNodeId,
-    BaseNodeId,
-    IBaseNodeWorker,
-    BaseNodeWorker,
-    BaseNodeStatuses,
-    IBaseNodeStatus,
-    BaseNodeStatus
+    IBaseId,
+    BaseId,
+    IBaseWorker,
+    BaseWorker,
+    BaseStatuses,
+    IBaseStatus,
+    BaseStatus
 } from './node.js';
 
 export {
-    BaseNodeCreateOptions,
-    IBaseNodesManager,
-    BaseNodesManager,
-    BaseNodeManagerOptions
+    BaseCreateOptions,
+    IBasesManager,
+    BasesManager,
+    BaseManagerOptions
 } from './manager.js';
 
 export {
-    IBaseNodeResponseObject,
-    BaseNodeResponseObject,
-    BaseNodeResponseCode,
-    IBaseNodeResponse,
-    BaseNodeResponse
+    IBaseResponseObject,
+    BaseResponseObject,
+    BaseResponseCode,
+    IBaseResponse,
+    BaseResponse
 } from './responses.js';

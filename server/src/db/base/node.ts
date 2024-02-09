@@ -1,20 +1,22 @@
 import {
-    IBaseNodeCommandPlane,
-    BaseNodeCommandPlane,
-    BaseNodeCommandActions,
-    BaseNodeCommand
+    IBaseCommandPlane,
+    BaseCommandPlane,
+    BaseCommandActions,
+    BaseCommand
 } from "./commands.js";
 import {
     createRandomId
 } from "../../utils/index.js";
 
 
-interface IBaseNodeId {
+
+
+interface IBaseId {
     id: string;
 }
 
-class BaseNodeId
-    implements IBaseNodeId
+class BaseId
+    implements IBaseId
 {
     public id: string;
 
@@ -23,38 +25,7 @@ class BaseNodeId
     }
 }
 
-interface IBaseNodeWorker<T, U> {
-    instance?: T;
-
-    createWorker: (options?: U) => Promise<T>;
-}
-
-class BaseNodeWorker<T, U>
-    implements IBaseNodeWorker<T, U>
-{
-    public instance?: T;
-
-    public constructor(worker?: T, options?: U) {
-        if (worker) {
-            this.instance = worker;
-        }
-        else {
-            this.createWorker(options)
-                .then((worker: T) => {
-                    this.instance = worker;
-                })
-                .catch((error: Error) => {
-                    this.instance = {} as T;
-                });
-        }
-    }
-
-    createWorker = async (options?: U): Promise<T> => {
-        return {} as T;
-    }
-}
-
-enum BaseNodeStatuses {
+enum BaseStatuses {
     NEW = 'new',
     STARTED = 'started',
     STOPPED = 'stopped',
@@ -63,23 +34,23 @@ enum BaseNodeStatuses {
     DONE = 'done'
 }
 
-interface IBaseNodeStatus {
-    status: BaseNodeStatuses;
+interface IBaseStatus {
+    status: BaseStatuses;
     message: string;
     error?: Error;
     meta?: any;
 }
 
-class BaseNodeStatus
-    implements IBaseNodeStatus
+class BaseStatus
+    implements IBaseStatus
 {
-    public status: BaseNodeStatuses;
+    public status: BaseStatuses;
     public message: string;
     public error?: Error;
     public meta?: any;
 
     public constructor(
-        status: BaseNodeStatuses,
+        status: BaseStatuses,
         message: string,
         error?: Error,
         meta?: any
@@ -91,64 +62,62 @@ class BaseNodeStatus
     }
 }
 
-interface IBaseNode<T, U> {
-    id: IBaseNodeId;
-    status: IBaseNodeStatus;
-    commands: IBaseNodeCommandPlane<T, U>;
+interface IBase<T, U> {
+    id: IBaseId;
+    status: IBaseStatus;
+    commands: IBaseCommandPlane<T, U>;
 }
 
 
 /**
- * @class BaseNode
+ * @class Base
  * @description The base class for all node instances (IPFS, OrbitDB, Libp2p, etc.)
  * @summary The base class for all node instances
- * @property {IBaseNodeId} id - The System Worker ID of the node
- * @property {IBaseNodeWorker<T, U=null>} worker - The worker for the node instance
- * @property {IBaseNodeStatus} status - The status of the node instance
- * @property {IBaseNodeCommandPlane} commands - The command plane for the node instance
+ * @property {IBaseId} id - The System Worker ID of the node
+ * @property {IBaseWorker<T, U=null>} worker - The worker for the node instance
+ * @property {IBaseStatus} status - The status of the node instance
+ * @property {IBaseCommandPlane} commands - The command plane for the node instance
  * @template T - The worker type for the node instance
  * @template U - The options type for the worker
  * 
  */
-class BaseNode<T, U>
-    implements IBaseNode<T, U>
+class Base<T, U>
+    implements IBase<T, U>
 {
-    public id: BaseNodeId;
-    public status: BaseNodeStatus;
-    public commands: BaseNodeCommandPlane<T, U>;
+    public id: BaseId;
+    public status: BaseStatus;
+    public commands: BaseCommandPlane<T, U>;
 
     public constructor(
-        id?: BaseNodeId,
-        worker?: BaseNodeWorker<T, U>,
-        status?: BaseNodeStatus,
-        commands?: BaseNodeCommandActions | BaseNodeCommandPlane<T, U> | BaseNodeCommand[]
+        id?: BaseId,
+        worker?: BaseWorker<T, U>,
+        status?: BaseStatus,
+        commands?: BaseCommandActions | BaseCommandPlane<T, U> | BaseCommand[]
     ) {
-        this.id = id ? id : new BaseNodeId();
-        this.status = status ? status : new BaseNodeStatus(BaseNodeStatuses.NEW, 'New node instance created');
-        worker = worker ? worker : new BaseNodeWorker<T, U>();
+        this.id = id ? id : new BaseId();
+        this.status = status ? status : new BaseStatus(BaseStatuses.NEW, 'New node instance created');
+        worker = worker ? worker : new BaseWorker<T, U>();
         
-        if (commands instanceof BaseNodeCommandPlane) {
+        if (commands instanceof BaseCommandPlane) {
             this.commands = commands;
         }
         else if (Array.isArray(commands)) {
-            this.commands = new BaseNodeCommandPlane<T, U>(worker, commands);
+            this.commands = new BaseCommandPlane<T, U>(worker, commands);
         }
         else {
-            this.commands = new BaseNodeCommandPlane<T, U>(worker);
+            this.commands = new BaseCommandPlane<T, U>(worker);
         }
     }
 }
 
 export {
-    IBaseNodeId,
-    BaseNodeId,
-    IBaseNodeWorker,
-    BaseNodeWorker,
-    BaseNodeStatuses,
-    IBaseNodeStatus,
-    BaseNodeStatus,
-    IBaseNode,
-    BaseNode
+    IBaseId,
+    BaseId,
+    BaseStatuses,
+    IBaseStatus,
+    BaseStatus,
+    IBase,
+    Base
 }
 
 

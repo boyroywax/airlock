@@ -1,3 +1,11 @@
+import {
+  logger,
+  getLogBook,
+  LogBook,
+  LogBooksManager
+} from './logBook.js';
+
+
 
 
 function createRandomId() {
@@ -8,5 +16,11 @@ function createRandomId() {
 
 
 export {
-    createRandomId
+  // Misc. Tools
+  createRandomId,
+  // Log Book
+  logger,
+  getLogBook,
+  LogBook,
+  LogBooksManager
 }
