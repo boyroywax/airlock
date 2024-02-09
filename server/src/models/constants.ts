@@ -24,8 +24,18 @@ enum ResponseCode {
     UNKNOWN = 520
 }
 
+enum NodeStatus {
+    NEW = 'new',
+    STARTED = 'started',
+    STOPPED = 'stopped',
+    ERROR = 'error',
+    WARNING = 'warning',
+    DONE = 'done'
+}
+
 export {
     ResponseCode,
     Component,
-    LogLevel
+    LogLevel,
+    NodeStatus
 }

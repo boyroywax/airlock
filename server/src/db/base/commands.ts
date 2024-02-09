@@ -1,4 +1,5 @@
 import {
+    Component,
     LogLevel
 } from '../../models/constants.js';
 
@@ -7,18 +8,26 @@ import {
     logger
 } from '../../utils/index.js';
 
+import {
+    BaseWorker
+} from './worker.js';
+
+import {
+    libp2pCommands
+} from './commandsLibp2p.js';
+
 
 /**
  * @interface IBaseCommandProperties
  * @description Base Node Command Properties Interface
  * @member action: string
- * @member call: any
+ * @member call?: any
  * @member args: string[]
  * @member kwargs: {}
  */
 interface IBaseCommandProperties {
     action: string;
-    call: any;
+    call?: any;
     args: string[];
     kwargs: Object;
 }
@@ -29,7 +38,7 @@ interface IBaseCommandProperties {
  * @description Base Node Command Properties
  * @implements IBaseCommandProperties
  * @member action: string - The command action
- * @member call: any - The command call function or object
+ * @member call?: any - The command call function or object
  * @member args: string[] - The command arguments
  * @member kwargs: {} - The command keyword arguments
  */
@@ -37,13 +46,13 @@ class BaseCommandProperties
     implements IBaseCommandProperties
 {
     public action: string;
-    public call: any;
+    public call?: any;
     public args: string[];
     public kwargs: Object; 
 
     public constructor(
         action: string,
-        call: any,
+        call?: any,
         args?: string[],
         kwargs?: Object
     ) {
@@ -137,7 +146,17 @@ class BaseCommand
         this.process.call(this.process.args, this.process.kwargs).then( (result: any) => {
             response = new BaseCommandResponse<typeof result>(result);
         }).catch( (error: Error) => {
-            response = new BaseCommandResponse<any>(error);
+            try {
+                this.process.call.then( (result: any) => {
+                    response = new BaseCommandResponse<typeof result>(result);
+                });
+            } catch (e: any) {
+                logger({
+                    level: LogLevel.ERROR,
+                    message: `Command ${this.process.action} failed with processId: ${this.processId}\n Error: ${e.message}` +
+                            `\n Stack: ${e.stack} \n Output: ${response.output} \n Error: ${error}`
+                })
+            }
         });
 
         logger({
@@ -147,7 +166,7 @@ class BaseCommand
         this.setOutput(response);
 
         return response;
-    }
+    };
 
     /**
      * @function setOutput
@@ -159,6 +178,26 @@ class BaseCommand
     }
 }
 
+const createBaseCommands = (
+    worker: BaseWorker['process'],
+    component: Component,
+): BaseCommandProperties[] => {
+    let libp2pcmds: BaseCommandProperties[] = [];
+
+    switch (component) {
+        case Component.LIBP2P:
+            libp2pcmds = libp2pCommands({
+                worker: worker.process,
+            });
+        default:
+            break;
+    }
+
+    return Array<BaseCommandProperties>(...libp2pcmds);
+}
+
+
+
 export {
     IBaseCommandResponse,
     BaseCommandResponse,
@@ -166,4 +205,5 @@ export {
     BaseCommand,
     IBaseCommandProperties,
     BaseCommandProperties,
+    createBaseCommands
 }
