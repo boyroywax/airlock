@@ -178,6 +178,14 @@ class BaseCommand
     }
 }
 
+/**
+ * @function createBaseCommands
+ * @param worker: BaseWorker['process']
+ * @param component: Component
+ * @returns BaseCommandProperties[]
+ * @description Create the base commands for the node instance
+ * @summary Create the base commands for the node instance
+ */
 const createBaseCommands = (
     worker: BaseWorker['process'],
     component: Component,

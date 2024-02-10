@@ -6,83 +6,20 @@ import { OrbitDB, Database } from '@orbitdb/core';
 import { IHeliaNodeOptions } from './helia.js';
 import { IOrbitDBNodeOptions, IOrbitDBOptions } from './orbitdb.js';
 
-// import {
-//     OrbitDBNodeCommand,
-//     OrbitDBNodeCommands
-// } from '../db/orbitdb/commands.js';
-
-// import {
-//     Libp2pCommands,
-//     Libp2pNodeCommand
-// } from '../db/libp2p.js';
-
 import {
     // IPFSNode,
     Libp2pNode,
     // OrbitDBNode
 } from '../db/index.js';
-
-// import { OpenDBCommands } from '../db/open/commands.js';
-
-/**
- * @constant NodeInstanceTypes
- * @description The types of node instances
- * @summary The types of node instances
- * @readonly
- * @enum {string}
- * @property {string} DB - The node instance is a database
- * @property {string} LIBP2P - The node instance is a libp2p node
- * @property {string} IPFS - The node instance is an IPFS node
- * @property {string} ORBITDB - The node instance is an OrbitDB node
- */ 
-enum NodeInstanceTypes {
-    OPEN_DB = 'db',
-    LIBP2P = 'libp2p',
-    IPFS = 'ipfs',
-    ORBITDB = 'orbitdb'
-}
-
-/**
- * @constant NodeInstanceStatus
- * @description The status of node instances
- * @summary The status of node instances
- * @enum {string}
- * @readonly
- * @property {string} STARTED - The node instance is started
- * @property {string} STOPPED - The node instance is stopped
- * @property {string} ERROR - The node instance has an error
- */
-enum NodeInstanceStatus {
-    STARTED = 'started',
-    STOPPED = 'stopped',
-    ERROR = 'error'
-}
-
-/**
- * @constant NodeCodes
- * @description The response codes for node instances
- * @summary The response codes for node instances
- * @enum {number}
- * @readonly
- * @property {number} LIBP2P - The response code for libp2p nodes
- * @property {number} IPFS - The response code for IPFS nodes
- * @property {number} ORBITDB - The response code for OrbitDB nodes
- * @property {number} OPEN_DB - The response code for open databases
- */
-enum NodeCodes {
-    LIBP2P = 100,
-    IPFS = 200,
-    ORBITDB = 300,
-    OPEN_DB = 400
-}   
+import { NodeStatus } from './constants.js';
 
 /**
  * @interface INodeConfig
  * @description The configuration for a node instance
  * @summary The configuration for a node instance
  * @property {string} id - The System Worker ID of the node
- * @property {Libp2pOptions | IHeliaNodeOptions | IOrbitDBNodeOptions | IOrbitDBOptions} [options] - The options for the node instance
- * @property {Helia | Libp2p<ServiceMap> | typeof OrbitDB | typeof Database} [instance] - The instance of the node
+ * @property {WorkerOptions} [options] - The options for the node instance
+ * @property {WorkerType} [instance] - The instance of the node
  */
 interface INodeConfig {
     id: string;
@@ -106,9 +43,10 @@ interface INodeConfig {
  */
 interface INode {
     id: string;
-    instance?:  Helia | Libp2p<ServiceMap> | typeof OrbitDB | typeof Database;
+    status: NodeStatus;
+    worker: 
 
-    getInstance(): INode['instance'];
+    getInstance(): INode['commands'][''];
     getPeerID(): string;
     getStatus(): INodeActionResponse;
     getWorkerID(): INode['id'];

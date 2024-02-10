@@ -26,6 +26,7 @@ enum ResponseCode {
 
 enum NodeStatus {
     NEW = 'new',
+    INIT = 'init',
     STARTED = 'started',
     STOPPED = 'stopped',
     ERROR = 'error',

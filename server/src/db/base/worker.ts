@@ -1,12 +1,7 @@
 import {
     Libp2p,
-    Libp2pOptions,
     createLibp2p
 } from 'libp2p';
-
-import {
-    defaultLibp2pConfig
-} from '../publicConfigDefault.js';
 
 import {
     Helia,
@@ -14,143 +9,56 @@ import {
 } from 'helia';
 
 import {
-    MemoryBlockstore
-} from 'blockstore-core'
-
-import {
-    MemoryDatastore
-} from 'datastore-core'
-
-import {
     createOrbitDb,
-    useIdentityProvider,
     OrbitDb,
     Database
 } from '@orbitdb/core';
 
-import OrbitDBIdentityProviderDID from '@orbitdb/identity-provider-did'
-import KeyDidResolver from 'key-did-resolver'
 import {
-    Ed25519Provider
-} from 'key-did-provider-ed25519'
+    WorkerOptions,
+    DefaultWorkerOptions
+} from './workerOptions.js';
 
 import {
-    createRandomId,
     logger
 } from '../../utils/index.js';
 
 import {
     Component,
-    LogLevel
+    LogLevel,
+    ResponseCode
 } from '../../models';
 
 import {
-    BaseCommand
+    BaseCommandProperties,
+    createBaseCommands
 } from './commands.js';
 
 type WorkerType = Libp2p | Helia | typeof OrbitDb | typeof Database;
-
-type WorkerOptions = IWorkerOptions | OrbitDbWorkerOptions | DefaultWorkerOptions;
-
-interface IWorkerOptions {
-    libp2pOptions?: Libp2pOptions;
-    libp2p?: Libp2p;
-    ipfs?: Helia;
-    blockstore?: any;
-    datastore?: any;
-    enableDID?: boolean;
-    identitySeed?: Uint8Array;
-    identityProvider?: typeof OrbitDBIdentityProviderDID;
-    orbitdb?: typeof OrbitDb;
-    databaseName?: string;
-    databaseType?: string;
-}
-
-class DefaultWorkerOptions
-    implements IWorkerOptions
-{
-    public libp2pOptions?: Libp2pOptions;
-    public libp2p?: Libp2p;
-    public ipfs?: Helia;
-    public blockstore?: any;
-    public datastore?: any;
-    public enableDID?: boolean = true;
-    public identitySeed?: Uint8Array;
-    public identityProvider?: typeof OrbitDBIdentityProviderDID;
-    public orbitdb?: typeof OrbitDb;
-    public databaseName?: string;
-    public databaseType?: string;
-
-    public constructor(options?: IWorkerOptions) {
-        options = options ? options : {} as IWorkerOptions;
-        this.libp2pOptions = options.libp2pOptions ? options.libp2pOptions : defaultLibp2pConfig;
-        this.libp2p = options.libp2p;
-        this.ipfs = options.ipfs;
-        this.blockstore = options.blockstore ? options.blockstore : new MemoryBlockstore();
-        this.datastore = options.datastore ? options.datastore : new MemoryDatastore();
-        this.enableDID = options.enableDID ? options.enableDID : true;
-        this.identitySeed = options.identitySeed ? options.identitySeed : new Uint8Array([157, 94, 116, 1918, 1239, 238, 91, 229, 173, 82, 245, 222, 199, 7, 183, 177, 123, 238, 83, 240, 143, 188, 87, 191, 33, 95, 58, 136, 46, 218, 219, 245]);
-        this.identityProvider = options.identityProvider ? options.identityProvider : OrbitDBIdentityProviderDID;
-        this.orbitdb = options.orbitdb;
-        this.databaseName = options.databaseName ? options.databaseName : createRandomId();
-        this.databaseType = options.databaseType ? options.databaseType : 'events';
-    }
-}
-
-class OrbitDbWorkerOptions
-    extends DefaultWorkerOptions
-    implements IWorkerOptions
-{
-    public constructor(options: IWorkerOptions) {
-        super(options);
-
-        if (this.enableDID) {
-            if (!this.identitySeed) {
-                logger({
-                    level: LogLevel.WARN,
-                    message: `[OrbitDbWorkerOptions] No identity seed provided, using default`
-                });
-                this.identitySeed = new Uint8Array([157, 94, 116, 1918, 1239, 238, 91, 229, 173, 82, 245, 222, 199, 7, 183, 177, 123, 238, 83, 240, 143, 188, 87, 191, 33, 95, 58, 136, 46, 218, 219, 245])
-            }
-
-            try {
-                OrbitDBIdentityProviderDID.setDIDResolver(KeyDidResolver.getResolver())
-                useIdentityProvider(OrbitDBIdentityProviderDID)
-                const didProvider = new Ed25519Provider(this.identitySeed)
-                this.identityProvider = OrbitDBIdentityProviderDID({ didProvider })
-            } catch (error: any) {
-                logger({
-                    level: LogLevel.ERROR,
-                    message: `[OrbitDbWorkerOptions] Error creating DID identity provider: ${error}`
-                })
-            }
-        }
-    }
-}
 
 
 /**
  * @interface IBaseWorker
  * @description Base Worker Interface
- * @member worker: T
- * @member options: U
- * @method createWorker: (options?: U) => Promise<T>
+ * @member worker: WorkerType
+ * @member options: WorkerOptions
+ * @method createWorker: (options?: WorkerOptions) => Promise<WorkerType>
  */
 interface IBaseWorker
 {
-    id: string;
-    type: Component;
+    id?: string;
+    type?: Component;
     worker?: WorkerType;
     options?: WorkerOptions;
-    commands?: BaseCommand[];
+    commands?: BaseCommandProperties[];
 
     createWorker: (
         options: WorkerOptions
     ) => Promise<WorkerType>;
 
     createCommands: (
-        commands: BaseCommand[]
-    ) => Promise<BaseCommand[]>;
+        commands: BaseCommandProperties[]
+    ) => BaseCommandProperties[];
 }
 
 
@@ -160,77 +68,157 @@ interface IBaseWorker
  * @implements IBaseWorker
  * @member worker: WorkerType
  * @member options: WorkerOptions
- * @member commands: BaseCommand[]
+ * @member commands: BaseCommandParameters[]
  * @method createWorker: (options: WorkerOptions) => Promise<WorkerType>
- * @method createCommands: (commands: BaseCommand[]) => Promise<BaseCommand[]>
- * @param type: Component - The type of worker
- * @param id?: string - The worker ID
- * @param process?: WorkerType - The worker process
- * @param options?: WorkerOptions - The worker options
- * @param commands?: BaseCommand[] - The worker commands
- * 
+ * @method createCommands: (commands: BaseCommandProperties[]) => BaseCommandProperties[]
  */
 class BaseWorker
     implements IBaseWorker
 {
-    public id: string;
-    public type: Component;
-    public process?: WorkerType;
+    public id?: string;
+    public type?: Component;
     public options?: WorkerOptions;
-    public commands?: BaseCommand[];
+    public process?: WorkerType;
+    public commands?: BaseCommandProperties[];
 
-    public constructor(
+    public constructor({
+        type,
+        options,
+        commands
+    } : {
         type: Component,
-        id?: string,
-        process?: WorkerType,
-        options?: WorkerOptions
-    ) {
-        this.type = type;
-        this.id = id ? id : createRandomId();
-        this.process = process;
-        this.options = options;
+        options?: WorkerOptions,
+        commands?: BaseCommandProperties[]
+    }) {
+        
+        if (type === null && options?.type === undefined) {
+            logger({
+                level: LogLevel.ERROR,
+                component: Component.SYSTEM,
+                code: ResponseCode.BAD_REQUEST,
+                message: `Worker type not found in options or arguments`
+            });
+            return;
+        }
+        else if (type === null && options?.type !== undefined) {
+            this.type = options.type;
+        }
+        else {
+            this.type = type;
+        }
 
-        if (!this.process) {
-            this.createWorker(this.options)
-                .then( (worker) => {
-                    this.process = worker;
-                })
-                .catch( (error: Error) => {
-                    
+        this.options = new DefaultWorkerOptions(this.type, options);
+
+        this.id = this.options.id;
+        this.commands = commands ? commands : new Array<BaseCommandProperties>();
+
+        // check for an existing worker
+        if (this.process) {
+            logger({
+                level: LogLevel.INFO,
+                component: type,
+                code: ResponseCode.SUCCESS,
+                message: `[${this.id}] Worker already exists: ${this.type}`
+            });
+            return;
+        }
+
+        // check if the process is in the options
+        switch (this.type) {
+            case Component.LIBP2P:
+                if (this.options.libp2p) {
+                    this.process = this.options.libp2p;
+                }
+                break;
+        
+            case Component.IPFS:
+                if (this.options.ipfs) {
+                    this.process = this.options.ipfs;
+                }
+                break;
+
+            case Component.ORBITDB:
+                if (this.options.orbitdb) {
+                    this.process = this.options.orbitdb;
+                }
+                break;
+
+            case Component.DB:
+                if (this.options.orbitdb) {
+                    this.process = this.options.orbitdb;
+                }
+                break;
+
+            default:
+                break;
+        }
+
+        this.createWorker(this.options)
+            .then( (worker) => {
+                this.process = worker;
+            })
+            .catch( (error: Error) => {
+                logger({
+                    level: LogLevel.ERROR,
+                    component: type,
+                    code: ResponseCode.INTERNAL_SERVER_ERROR,
+                    message: `[${this.id}] Error creating worker: ${error}`
+                });
+            }).finally( () => {
+                if (this.process) {
                     logger({
-                        level: LogLevel.ERROR,
+                        level: LogLevel.INFO,
                         component: type,
-                        message: `[BaseWorker] Error creating worker: ${error}`
+                        code: ResponseCode.SUCCESS,
+                        message: `[${this.id}] Worker created: ${this.type}`
                     });
                 }
-            );
+            })
+
+        try {
+            this.commands = this.createCommands(this.commands);
+            logger({
+                level: LogLevel.INFO,
+                component: type,
+                code: ResponseCode.SUCCESS,
+                message: `[${this.id}] Commands created: ${this.commands}`
+            });
+        } catch (error: any) {
+            logger({
+                level: LogLevel.ERROR,
+                component: type,
+                code: ResponseCode.INTERNAL_SERVER_ERROR,
+                message: `[${this.id}] Error creating commands: ${error}`
+            });
+        } finally {
+            if (this.commands) {
+                logger({
+                    level: LogLevel.INFO,
+                    component: type,
+                    code: ResponseCode.SUCCESS,
+                    message: `[${this.id}] Worker created: ${this.type}`
+                });
+            }
         }
     }
 
-    public createWorker = async (options?: WorkerOptions): Promise<WorkerType> => {
+    public createWorker = async (
+        options: WorkerOptions
+    ): Promise<WorkerType> => {
         let worker: WorkerType = null;
-        options = this.options ? this.options :  new DefaultWorkerOptions(options);
+        options = this.options ? this.options : new DefaultWorkerOptions(options);
 
         switch (this.type) {
             case Component.LIBP2P:
                 worker = await createLibp2p({
-
+                    ...options.libp2pOptions
                 });
                 break;
         
             case Component.IPFS:
-                if (!options?.libp2p) {
-                    logger({
-                        level: LogLevel.ERROR,
-                        component: Component.IPFS,
-                        message: '[BaseWorker] No libp2p instance provided'
-                    });
-                }
-                else {
-                    worker = await createHelia({
-                        libp2p: options.libp2p
-                    });
-                };
+                worker = await createHelia({
+                    libp2p: options.libp2p
+                });
                 break;
 
             case Component.ORBITDB:
@@ -238,7 +226,7 @@ class BaseWorker
                     logger({
                         level: LogLevel.INFO,
                         component: Component.ORBITDB,
-                        message: '[BaseWorker] Using DID identity provider'
+                        message: `[${this.id}] Using DID identity provider`
                     });
 
                     worker = await createOrbitDb({
@@ -247,50 +235,50 @@ class BaseWorker
                             provider: options.identityProvider
                         },
                     });
-                } else if (!options?.ipfs) {
-                    logger({
-                        level: LogLevel.ERROR,
-                        component: Component.ORBITDB,
-                        message: '[BaseWorker] No ipfs instance provided'
-                    });
                 }
                 else {
                     worker = await createOrbitDb({
                         ipfs: options.ipfs
                     });
-                }
+                };
                 break;
 
             case Component.DB:
                 worker = await options.orbitdb.open(
                     options.databaseName, { 
-                        type: options.databaseType 
-                });
+                        type: options.databaseType
+                    }
+                );
                 break;
 
             default:
                 logger({
                     level: LogLevel.ERROR,
-                    message: '[BaseWorker] Unknown worker type'
+                    code: ResponseCode.NOT_FOUND,
+                    message: `[${this.id}] Unknown worker type`
                 });
                 break;
         }
-
-        logger({
-            level: LogLevel.INFO,
-            message: `[BaseWorker] Worker created: ${this.type}`
-        
-        })
-
         return worker;
     }
 
-    public createCommands = async (commands?: BaseCommand[]): Promise<BaseCommand[]> => {
+    public createCommands = (
+        commands?: BaseCommandProperties[]
+    ): BaseCommandProperties[] => {
         if (commands) {
             this.commands = commands;
         }
         else {
-            this.commands = [];
+            this.commands = new Array<BaseCommandProperties>();
+        }
+
+        switch (this.type) {
+            case Component.LIBP2P:
+                this.commands = createBaseCommands(this.process, this.type);
+                break;
+
+            default:
+                break;
         }
 
         return this.commands;
@@ -301,8 +289,5 @@ class BaseWorker
 export {
     IBaseWorker,
     BaseWorker,
-    IWorkerOptions,
-    WorkerOptions,
     WorkerType,
-    DefaultWorkerOptions
 }

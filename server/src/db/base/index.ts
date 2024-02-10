@@ -6,23 +6,15 @@ export {
 } from './commands.js';
 
 export {
-    IBaseId,
-    BaseId,
-    BaseStatuses,
-    IBaseStatus,
-    BaseStatus
+    IBaseNode,
+    BaseNode,
 } from './node.js';
 
 export {
-    BaseCreateOptions,
     IBasesManager,
     BasesManager,
-    BaseManagerOptions
 } from './manager.js';
 
 export {
-    IBaseResponseObject,
-    BaseResponseObject,
-    IBaseResponse,
-    BaseResponse
-} from './responses.js';
+    WorkerOptions
+} from './workerOptions.js';
