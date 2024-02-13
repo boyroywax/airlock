@@ -1,7 +1,7 @@
 import {
     IBaseNode,
     BaseNode,
-    INodeOptions
+    IBaseNodeOptions
 } from "./node.js";
 
 import {
@@ -19,11 +19,11 @@ import { BaseWorker } from "./worker.js";
 import { defaultNodeOptions } from "./nodeOptions.js";
 
 
-interface IBasesManager {
+interface IBaseManager {
     nodes: Map<IBaseNode['id'], IBaseNode>;
 
-    verifyOptions(options: INodeOptions): INodeOptions;
-    create(options?: INodeOptions[]): IBaseNode[];
+    verifyOptions(options: IBaseNodeOptions): IBaseNodeOptions;
+    create(options?: IBaseNodeOptions[]): IBaseNode[];
     get(id: IBaseNode['id']): IBaseNode | undefined;
     getComponents(type: Component): IBaseNode[];
     list(): IBaseNode['id'][];
@@ -32,13 +32,13 @@ interface IBasesManager {
 
 
 /**
- * @class BasesManager
+ * @class BaseManager
  * @description The manager for base nodes
- * @implements IBasesManager
+ * @implements IBaseManager
  * @member nodes: Map<IBaseNode['id'], IBaseNode> - The map of base nodes
  */
-class BasesManager
-    implements IBasesManager
+class BaseManager
+    implements IBaseManager
 {
     public nodes: Map<BaseNode['id'], BaseNode>;
 
@@ -47,7 +47,7 @@ class BasesManager
         options
     }: {
         nodes?: BaseNode[],
-        options?: INodeOptions[]
+        options?: IBaseNodeOptions[]
     }) {
         if (!nodes) {
             nodes = new Array<BaseNode>();
@@ -65,7 +65,7 @@ class BasesManager
         
     }
 
-    public create(options: INodeOptions[]): BaseNode[] {
+    public create(options: IBaseNodeOptions[]): BaseNode[] {
         let newNodes = new Array<BaseNode>();
         for (let option of options) {
             option = this.verifyOptions(option);
@@ -113,16 +113,21 @@ class BasesManager
     }
 
     public verifyOptions = (
-        options: INodeOptions
-    ): INodeOptions => {
+        options: IBaseNodeOptions
+    ): IBaseNodeOptions => {
         if (options.workerOptions) {
-            let workerOptions = options.workerOptions;
+            let workerOptions = options.workerOptions ?;
             let worker: any = options.worker;
     
             if (workerOptions && worker) {
-                if (typeof worker === 'string') {
-                    worker = this.get(worker);
-                }
+                logger({
+                    level: LogLevel.WARN,
+                    component: options.component,
+                    code: ResponseCode.FORBIDDEN,
+                    message: `Worker options and worker provided for ${options.component} node.` +
+                            `The worker will be used and worker options will be ignored.`,
+                });
+                options.worker = worker;
             }
         }
         return options;
@@ -148,8 +153,8 @@ class BasesManager
 
 
 export {
-    BasesManager,
-    IBasesManager,
+    BaseManager,
+    IBaseManager,
 }
 
 

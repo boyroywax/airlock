@@ -11,7 +11,7 @@ import {
 } from "../../utils/index.js";
 
 import {
-    INodeOptions
+    IBaseNodeOptions
 }  from "./nodeOptions.js";
 
 
@@ -53,8 +53,8 @@ class BaseNode
         commands,
         workerOptions,
         worker
-    }: INodeOptions) {
-        this.id = id ? id : createRandomId();
+    }: IBaseNodeOptions) {
+        this.id = id ? id : `${component}-` + createRandomId();
         this.status = status ? status : NodeStatus.STOPPED;
 
         if (worker instanceof BaseWorker) {
@@ -71,7 +71,7 @@ class BaseNode
 }
 
 export {
-    INodeOptions,
+    IBaseNodeOptions,
     IBaseNode,
     BaseNode
 }

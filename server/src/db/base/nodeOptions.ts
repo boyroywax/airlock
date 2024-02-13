@@ -1,6 +1,6 @@
 import {
     BaseCommandProperties,
-} from "./commands.js";
+} from "./command.js";
 
 import {
     BaseWorker
@@ -20,10 +20,8 @@ import {
 } from "./workerOptions.js";
 
 
-
-
 /**
- * @interface INodeOptions
+ * @interface IBaseNodeOptions
  * @description The Base Node Options Interface
  * @member component: Component - The component type
  * @member id?: string - The System Worker ID of the node
@@ -32,7 +30,7 @@ import {
  * @member workerOptions?: WorkerOptions - The worker options for the node instance
  * @member worker?: BaseWorker - The worker for the node instance
  */
-interface INodeOptions {
+interface IBaseNodeOptions {
     component: Component;
     workerOptions?: WorkerOptions;
     id?: string;
@@ -42,38 +40,37 @@ interface INodeOptions {
 }
 
 const defaultNodeOptions = (
-    options?: INodeOptions[]
-): INodeOptions[] => {
+    options?: IBaseNodeOptions[]
+): IBaseNodeOptions[] => {
     let id: string = createRandomId();
     
     if (!options) {
-        options = new Array<INodeOptions>();
+        options = new Array<IBaseNodeOptions>();
     }
     options.push({
         component: Component.LIBP2P,
         id: Component.LIBP2P + '-' + id,   
-    } as INodeOptions, {
+    } as IBaseNodeOptions, {
         component: Component.IPFS,
         id: Component.IPFS + '-' + id,
         worker: Component.LIBP2P + '-' + id,
-    } as INodeOptions, {
+    } as IBaseNodeOptions, {
         component: Component.ORBITDB,
         id: Component.ORBITDB + '-' + id,
         worker: Component.IPFS + '-' + id,
-    } as INodeOptions, {
+    } as IBaseNodeOptions, {
         component: Component.DB,
         id: Component.DB + '-' + id,
         worker: Component.ORBITDB + '-' + id,
-    } as INodeOptions);
+    } as IBaseNodeOptions,
+    ...options);
 
     return options;
 }
 
 
 
-
-
 export {
-    INodeOptions,
+    IBaseNodeOptions,
     defaultNodeOptions
 }

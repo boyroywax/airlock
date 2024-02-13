@@ -9,7 +9,7 @@ import {
 } from '../../utils/index.js';
 
 import {
-    BaseWorker
+    BaseWorker, WorkerProcess
 } from './worker.js';
 
 import {
@@ -22,14 +22,14 @@ import {
  * @description Base Node Command Properties Interface
  * @member action: string
  * @member call?: any
- * @member args: string[]
- * @member kwargs: {}
+ * @member args?: Array<string>
+ * @member kwargs?: Map<string, string>
  */
 interface IBaseCommandProperties {
     action: string;
     call?: any;
-    args: string[];
-    kwargs: Object;
+    args?: Array<string>;
+    kwargs?: Map<string, string>;
 }
 
 
@@ -39,27 +39,32 @@ interface IBaseCommandProperties {
  * @implements IBaseCommandProperties
  * @member action: string - The command action
  * @member call?: any - The command call function or object
- * @member args: string[] - The command arguments
- * @member kwargs: {} - The command keyword arguments
+ * @member args?: Array<string> - The command arguments
+ * @member kwargs?: Map<string, string> - The command keyword arguments
  */
 class BaseCommandProperties
     implements IBaseCommandProperties
 {
     public action: string;
     public call?: any;
-    public args: string[];
-    public kwargs: Object; 
+    public args?: Array<string>;
+    public kwargs?: Map<string, string>; 
 
-    public constructor(
+    public constructor({
+        action,
+        call,
+        args,
+        kwargs
+    }: {
         action: string,
         call?: any,
-        args?: string[],
-        kwargs?: Object
-    ) {
+        args?: Array<string>,
+        kwargs?: Map<string, string>
+    }) {
         this.action = action;
         this.call = call;
-        this.args = args ? args : [];
-        this.kwargs = kwargs ? kwargs : Object;
+        this.args = args ? args : new Array<string>();;
+        this.kwargs = kwargs ? kwargs : new Map<string, string>();
     }
 }
 
@@ -98,6 +103,7 @@ class BaseCommandResponse<T>
  * @member processId?: string
  * @member output?: IBaseResponse<any>
  * @method execute(): Promise<IBaseCommandResponse<any>>
+ * @method verifyArgs(args?: Array<string>, kwargs?: Map<string, string>): boolean
  * @method setOutput(output: IBaseCommandResponse<any>): void
  */
 interface IBaseCommand {
@@ -106,6 +112,7 @@ interface IBaseCommand {
     output?: BaseCommandResponse<any>;
 
     execute(): Promise<BaseCommandResponse<any>>;
+    verifyArgs(args?: Array<string>, kwargs?: Map<string, string>): boolean;
     setOutput(output: BaseCommandResponse<any>): void;
 }
 
@@ -140,7 +147,10 @@ class BaseCommand
      * @returns Promise<BaseResponse<any>>
      * @description Execute the command
      */
-    public async execute(): Promise<BaseCommandResponse<any>> {
+    public async execute(
+        args?: Array<string>,
+        kwargs?: Map<string, string>
+    ): Promise<BaseCommandResponse<any>> {
         let response: BaseCommandResponse<any> = new BaseCommandResponse<string>('Command Not Implemented');
 
         this.process.call(this.process.args, this.process.kwargs).then( (result: any) => {
@@ -169,6 +179,33 @@ class BaseCommand
     };
 
     /**
+     * @function verifyArgs
+     * @param args?: Array<string>
+     * @param kwargs?: Map<string, string>
+     * @returns boolean
+     * @description Verify the command arguments
+     */
+    public verifyArgs(
+        args?: Array<string>,
+        kwargs?: Map<string, string>
+     ): Map<string, string> {
+        const availableArgs = this.process.args ? this.process.args : new Array<string>();
+        const availableKwargs = this.process.kwargs ? this.process.kwargs : new Map<string, string>();
+
+        // check number of arguments passed in
+        if (args?.length > availableArgs.length) {
+            logger({
+                level: LogLevel.ERROR,
+                processId: this.processId,
+                message: `Command ${this.process.action} failed with processId: ${this.processId}\n Error: Too many arguments`
+            })
+            return new Map<string, string>();
+        }
+
+    }
+
+
+    /**
      * @function setOutput
      * @param output: BaseCommandResponse<any>
      * @description Set the command output
@@ -180,14 +217,14 @@ class BaseCommand
 
 /**
  * @function createBaseCommands
- * @param worker: BaseWorker['process']
+ * @param worker: BaseWorker
  * @param component: Component
  * @returns BaseCommandProperties[]
  * @description Create the base commands for the node instance
  * @summary Create the base commands for the node instance
  */
 const createBaseCommands = (
-    worker: BaseWorker['process'],
+    worker: BaseWorker<WorkerProcess>,
     component: Component,
 ): BaseCommandProperties[] => {
     let libp2pcmds: BaseCommandProperties[] = [];
@@ -203,6 +240,9 @@ const createBaseCommands = (
 
     return Array<BaseCommandProperties>(...libp2pcmds);
 }
+
+
+
 
 
 

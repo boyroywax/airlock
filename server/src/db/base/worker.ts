@@ -32,29 +32,29 @@ import {
 import {
     BaseCommandProperties,
     createBaseCommands
-} from './commands.js';
+} from './command.js';
 
-type WorkerType = Libp2p | Helia | typeof OrbitDb | typeof Database;
+type WorkerProcess = Libp2p | Helia | typeof OrbitDb | typeof Database;
 
 
 /**
  * @interface IBaseWorker
  * @description Base Worker Interface
- * @member worker: WorkerType
+ * @member worker: T - The worker instance
  * @member options: WorkerOptions
- * @method createWorker: (options?: WorkerOptions) => Promise<WorkerType>
+ * @method createWorker: (options?: WorkerOptions) => Promise<WorkerProcess>
  */
-interface IBaseWorker
+interface IBaseWorker<T>
 {
     id?: string;
     type?: Component;
-    worker?: WorkerType;
+    worker?: T;
     options?: WorkerOptions;
     commands?: BaseCommandProperties[];
 
     createWorker: (
         options: WorkerOptions
-    ) => Promise<WorkerType>;
+    ) => Promise<WorkerProcess>;
 
     createCommands: (
         commands: BaseCommandProperties[]
@@ -66,19 +66,19 @@ interface IBaseWorker
  * @class BaseWorker
  * @description Base Worker
  * @implements IBaseWorker
- * @member worker: WorkerType
+ * @member worker: T
  * @member options: WorkerOptions
  * @member commands: BaseCommandParameters[]
- * @method createWorker: (options: WorkerOptions) => Promise<WorkerType>
+ * @method createWorker: (options: WorkerOptions) => Promise<WorkerProcess>
  * @method createCommands: (commands: BaseCommandProperties[]) => BaseCommandProperties[]
  */
-class BaseWorker
-    implements IBaseWorker
+class BaseWorker<T>
+    implements IBaseWorker<T>
 {
     public id?: string;
     public type?: Component;
     public options?: WorkerOptions;
-    public process?: WorkerType;
+    public process?: T;
     public commands?: BaseCommandProperties[];
 
     public constructor({
@@ -153,6 +153,16 @@ class BaseWorker
                 break;
         }
 
+        if (this.process) {
+            logger({
+                level: LogLevel.INFO,
+                component: type,
+                code: ResponseCode.SUCCESS,
+                message: `[${this.id}] Worker suceessfully loaded: ${this.type}`
+            });
+            return;
+        }
+
         this.createWorker(this.options)
             .then( (worker) => {
                 this.process = worker;
@@ -196,7 +206,7 @@ class BaseWorker
                     level: LogLevel.INFO,
                     component: type,
                     code: ResponseCode.SUCCESS,
-                    message: `[${this.id}] Worker created: ${this.type}`
+                    message: `[${this.id}] Commands created: ${this.type}`
                 });
             }
         }
@@ -204,9 +214,9 @@ class BaseWorker
 
     public createWorker = async (
         options: WorkerOptions
-    ): Promise<WorkerType> => {
-        let worker: WorkerType = null;
-        options = this.options ? this.options : new DefaultWorkerOptions(options);
+    ): Promise<WorkerProcess> => {
+        let worker: WorkerProcess = null;
+        options = this.options ? this.options : new DefaultWorkerOptions(this.type, options);
 
         switch (this.type) {
             case Component.LIBP2P:
@@ -289,5 +299,5 @@ class BaseWorker
 export {
     IBaseWorker,
     BaseWorker,
-    WorkerType,
+    WorkerProcess,
 }

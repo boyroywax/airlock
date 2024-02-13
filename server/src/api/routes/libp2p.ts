@@ -2,7 +2,7 @@ import express, { Response, Request, response } from 'express';
 import { initDefaultLibp2pNode, Libp2pNode, Libp2pNodesManager, BaseNodeResponse, BaseNodeResponseCode, Libp2pNodeCreateOptions } from '../../db/index.js';
 import { BaseNodeId, BaseNodeStatus, BaseNodeStatuses } from '../../db/base/node.js';
 import { Libp2pBaseRequest, Libp2pCommandRequest } from '../../models/api.js';
-import { BaseNodeCommand, BaseNodeCommandOption } from '../../db/base/commands.js';
+import { BaseNodeCommand, BaseNodeCommandOption } from '../../db/base/command.js';
 
 
 

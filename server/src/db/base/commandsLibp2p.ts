@@ -4,7 +4,7 @@ import {
 
 import {
     BaseCommandProperties,
-} from "./commands.js";
+} from "./command.js";
 
 
 const libp2pCommands = ({
@@ -19,44 +19,33 @@ const libp2pCommands = ({
         {
             action: 'start',
             call: worker.start,
-            args: [],
-            kwargs: {}
         },
         {
             action: 'stop',
             call: worker.stop,
-            args: [],
-            kwargs: {}
         },
         {
             action: 'getConnections',
             call: worker.getConnections,
-            args: [],
-            kwargs: {}
         },
         {
             action: 'getPeerID',
             call: worker.peerId,
-            args: [],
-            kwargs: {}
         },
         {
             action: 'dial',
             call: worker.dial,
-            args: [],
-            kwargs: {}
+            args: [
+                'peerId'
+            ],
         },
         {
             action: 'disconnect',
             call: worker.hangUp,
-            args: [],
-            kwargs: {}
         },
         {
             action: 'getPeers',
             call: worker.getPeers,
-            args: [],
-            kwargs: {}
         }
     ];
     return baseCommands;

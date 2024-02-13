@@ -2,18 +2,24 @@ export {
     IBaseCommand,
     BaseCommand,
     IBaseCommandProperties,
-    BaseCommandProperties
-} from './commands.js';
+    BaseCommandProperties,
+    createBaseCommands
+} from './command.js';
+
+export {
+    IBaseNodeOptions,
+    defaultNodeOptions
+} from './nodeOptions.js';
+
+export {
+    IBaseManager,
+    BaseManager,
+} from './manager.js';
 
 export {
     IBaseNode,
     BaseNode,
 } from './node.js';
-
-export {
-    IBasesManager,
-    BasesManager,
-} from './manager.js';
 
 export {
     WorkerOptions
